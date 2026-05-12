@@ -24,3 +24,6 @@ async def get_students(
 ):
     service = StudentService(db)
     return await service.get_all()
+
+# Get the sudent by 
+    

@@ -2,14 +2,14 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.student import StudentCreate
 from app.repositories.student_repository import StudentRepository
-from app.models.student import Student  # <--- 1. Import your SQLAlchemy Model
+from app.models.student import Student  
 
 class StudentService:
     def __init__(self, db: AsyncSession):
         self.repo = StudentRepository(db)
 
     async def create(self, payload: StudentCreate):
-        # 2. Check if student already exists (Business Logic)
+        #  Check if student already exists (Business Logic)
         existing = await self.repo.get_by_email(payload.email)
         if existing:
             raise HTTPException(
@@ -17,11 +17,17 @@ class StudentService:
                 detail="Student with this email already exists"
             )
 
-        # 3. Convert Pydantic DTO to SQLAlchemy Model
+        # autogenerate roll number    
+        count = await self.repo.get_count()
+        new_roll_number = f"STU-{(count + 1)}"
+
+        #  Convert Pydantic DTO to SQLAlchemy Model
         # **payload.model_dump() turns the DTO into keyword arguments for the Model
-        student_db_obj = Student(**payload.model_dump())
+        student_data = payload.model_dump()
+        student_data["roll_number"] = new_roll_number
+        student_db_obj = Student(**student_data)
         
-        # 4. Pass the Model (not the DTO) to the repository
+        # Pass the Model (not the DTO) to the repository
         return await self.repo.create(student_db_obj)
 
     async def get_all(self):

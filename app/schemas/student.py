@@ -7,6 +7,7 @@ class StudentCreate(BaseModel):
 
 class StudentOut(BaseModel):
     id: int
+    roll_number: str
     full_name: str
     email: str
     age: int
