@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
-from app.models.student import Student 
+from app.models.student import Student
+from sqlalchemy import or_ 
 
 class StudentRepository:
     def __init__(self, db: AsyncSession):
@@ -35,4 +36,14 @@ class StudentRepository:
         # Efficiently counts total records in the students table
         result = await self.db.execute(select(func.count(Student.id)))
         return result.scalar() or 0
+
+    async def search_students(self, search_term: str) -> list[Student]:
+        stmt = select(Student).where(
+            or_(
+                Student.roll_number.ilike(search_term),
+                Student.full_name.ilike(search_term)
+            )
+        )
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
 

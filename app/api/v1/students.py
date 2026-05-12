@@ -25,5 +25,12 @@ async def get_students(
     service = StudentService(db)
     return await service.get_all()
 
-# Get the sudent by 
+# Search the student
+@router.get("/search", response_model=list[StudentOut])
+async def search_students(
+    q: str = "", 
+    db: AsyncSession = Depends(get_db)
+):
+    service = StudentService(db)
+    return await service.search(q)
     

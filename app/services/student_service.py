@@ -32,3 +32,10 @@ class StudentService:
 
     async def get_all(self):
         return await self.repo.list_all()
+
+    async def search(self, query: str):
+        if not query:
+            return await self.get_all()
+        # Logic: prepare the search string
+        search_term = f"%{query.strip()}%"    
+        return await self.repo.search_students(search_term)
