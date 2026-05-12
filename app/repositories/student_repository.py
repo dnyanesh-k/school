@@ -47,3 +47,9 @@ class StudentRepository:
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
+    async def update(self, student: Student) -> Student:
+        await self.db.commit()
+        await self.db.refresh(student)
+        return student
+    
+

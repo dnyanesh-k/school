@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from app.db.session import get_db
-from app.schemas.student import StudentCreate, StudentOut
+from app.schemas.student import StudentCreate, StudentOut, StudentUpdate
 from app.services.student_service import StudentService
 
 router = APIRouter(prefix="/students", tags=["students"])
@@ -33,4 +33,14 @@ async def search_students(
 ):
     service = StudentService(db)
     return await service.search(q)
+
+@router.patch("/{roll_number}", response_model=StudentOut)
+async def update_student(
+    roll_number: str,
+    payload: StudentUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    service = StudentService(db)
+    return await service.update_student(roll_number, payload)
+    
     

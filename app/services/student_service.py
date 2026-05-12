@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.student import StudentCreate
+from app.schemas.student import StudentCreate, StudentUpdate
 from app.repositories.student_repository import StudentRepository
 from app.models.student import Student  
 
@@ -39,3 +39,18 @@ class StudentService:
         # Logic: prepare the search string
         search_term = f"%{query.strip()}%"    
         return await self.repo.search_students(search_term)
+
+    async def update_student(self, roll_number: str, payload: StudentUpdate):
+        # 1. Find the student
+        student = await self.repo.get_by_roll_number(roll_number)
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+    
+        # 2. Update only the fields provided in the payload
+        update_data = payload.model_dump(exclude_unset=True) # exclude_unset is key!
+        
+        for key, value in update_data.items():
+            setattr(student, key, value)
+    
+        # 3. Save changes
+        return await self.repo.update(student)    

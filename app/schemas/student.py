@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 class StudentCreate(BaseModel):
     full_name: str
@@ -11,5 +12,10 @@ class StudentOut(BaseModel):
     full_name: str
     email: str
     age: int
+
+class StudentUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    age: Optional[int] = None    
 
     model_config = {"from_attributes": True}
