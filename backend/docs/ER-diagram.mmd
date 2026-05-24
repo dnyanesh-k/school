@@ -1,0 +1,124 @@
+erDiagram
+    INSTITUTE {
+        uuid id PK
+        string name
+        string email
+        string phone
+        string address
+        string city
+        string institute_type
+        boolean is_active
+        timestamp created_at
+    }
+    USER {
+        uuid id PK
+        uuid institute_id FK
+        string name
+        string email
+        string hashed_password
+        string role
+        timestamp created_at
+    }
+    ACADEMIC_YEAR {
+        uuid id PK
+        uuid institute_id FK
+        string label
+        date start_date
+        date end_date
+        boolean is_current
+    }
+    CLASSES {
+        uuid id PK
+        uuid institute_id FK
+        string name
+        string description
+    }
+    SUBJECT {
+        uuid id PK
+        uuid class_id FK
+        uuid institute_id FK
+        string name
+    }
+    STUDENT {
+        uuid id PK
+        uuid institute_id FK
+        uuid class_id FK
+        uuid academic_year_id FK
+        string name
+        date date_of_birth
+        date admission_date
+        string parent_name
+        string parent_phone
+        string address
+        boolean is_active
+    }
+    FEE_PLAN {
+        uuid id PK
+        uuid student_id FK
+        uuid institute_id FK
+        uuid academic_year_id FK
+        decimal total_amount
+        decimal paid_amount
+        timestamp created_at
+    }
+    INSTALLMENT {
+        uuid id PK
+        uuid fee_plan_id FK
+        uuid institute_id FK
+        decimal amount
+        date due_date
+        date paid_date
+        string status
+    }
+    HOLIDAY {
+        uuid id PK
+        uuid institute_id FK
+        date holiday_date
+        string reason
+    }
+    ATTENDANCE {
+        uuid id PK
+        uuid student_id FK
+        uuid institute_id FK
+        uuid academic_year_id FK
+        date attendance_date
+        string status
+        uuid marked_by FK
+    }
+    TESTS {
+        uuid id PK
+        uuid institute_id FK
+        uuid class_id FK
+        uuid subject_id FK
+        uuid academic_year_id FK
+        string title
+        int test_number
+        decimal max_marks
+        date scheduled_date
+        boolean is_published
+    }
+    TEST_SCORE {
+        uuid id PK
+        uuid test_id FK
+        uuid student_id FK
+        uuid institute_id FK
+        decimal marks_obtained
+        string remarks
+        timestamp created_at
+    }
+    INSTITUTE ||--o{ USER : has
+    INSTITUTE ||--o{ ACADEMIC_YEAR : has
+    INSTITUTE ||--o{ CLASSES : has
+    CLASSES ||--o{ SUBJECT : has
+    INSTITUTE ||--o{ STUDENT : has
+    CLASSES ||--o{ STUDENT : contains
+    ACADEMIC_YEAR ||--o{ STUDENT : enrolls
+    STUDENT ||--|| FEE_PLAN : has
+    FEE_PLAN ||--o{ INSTALLMENT : contains
+    INSTITUTE ||--o{ HOLIDAY : marks
+    STUDENT ||--o{ ATTENDANCE : has
+    INSTITUTE ||--o{ TESTS : creates
+    CLASSES ||--o{ TESTS : has
+    SUBJECT ||--o{ TESTS : has
+    TESTS ||--o{ TEST_SCORE : has
+    STUDENT ||--o{ TEST_SCORE : receives

@@ -1,0 +1,97 @@
+## Complete Build Order
+
+Each step = backend API + frontend page. Finish and test both before moving to next.
+
+--- 
+
+**Step 1 — Auth (you have backend, finish frontend)**
+- Login page with Gmail OTP
+- Register institute page
+- JWT token storage
+- Auth guard on dashboard layout
+- Test: can register, login, token saved, redirects correctly
+
+---
+
+**Step 2 — Institute Setup**
+- Institute profile API (get, update)
+- Institute setup page after first login
+- Academic year create/set current
+- Test: institute details saved, academic year active
+
+---
+
+**Step 3 — Classes and Subjects**
+- CRUD APIs for classes
+- CRUD APIs for subjects under class
+- Frontend: manage classes page
+- Add subjects per class inline
+- Test: create Class 9, add Maths/Science subjects
+
+---
+
+**Step 4 — Students**
+- CRUD APIs for students
+- Assign to class, academic year
+- Student list page with filters by class
+- Add student form with all fields including parent phone
+- Test: add student, appears in list, filtered by class
+
+---
+
+**Step 5 — Fees**
+- Fee plan API on student admission
+- Installment schedule API
+- Defaulters list API (due date today or passed)
+- Frontend: fee status page
+- WhatsApp button activates for defaulters
+- Test: add fee plan, mark installment overdue, WhatsApp button appears with correct message
+
+---
+
+**Step 6 — Attendance**
+- Holiday CRUD API
+- Attendance marking API
+- Fetch class wise student list with default present
+- Absent streak calculation in service
+- Frontend: attendance page class wise
+- WhatsApp button for students absent N+ days
+- Test: mark absent, check streak, WhatsApp message correct
+
+---
+
+**Step 7 — Tests**
+- Test schedule API
+- Scheduled tests list page
+- Score entry API per student
+- Frontend: enter scores after test
+- WhatsApp button per student with score message
+- Test: schedule test, enter scores, WhatsApp fires correctly
+
+---
+
+**Step 8 — PWA**
+- Add next-pwa plugin
+- manifest.json with icons
+- Offline fallback page
+- Test: install on phone homescreen, works on slow connection
+
+---
+
+**Step 9 — Dashboard**
+- Summary API: total students, fees collected, pending, today's attendance %
+- Admin home page with these 4 numbers
+- Test: numbers match actual data
+
+---
+
+## Rule for Every Step
+
+```
+Write API → Test in Swagger → Build frontend page → 
+Test on desktop → Test on mobile → Move to next step
+```
+
+Never start Step N+1 until Step N works end to end on mobile. Your primary user is on a phone.
+
+**Start with Step 1 frontend now?**
