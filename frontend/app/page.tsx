@@ -19,10 +19,10 @@ export default function Home() {
             Login to Portal
           </Link>
           <Link
-            href="/students"
+            href="/register"
             className="rounded-lg border border-zinc-300 px-6 py-3 font-semibold text-zinc-900 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800"
           >
-            View Students
+            Register
           </Link>
         </div>
       </div>
