@@ -3,7 +3,12 @@
 import axios from "axios";
 import { API_URLS } from "@/config/urls";
 
-// ─── Types ─────────────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
 
 export interface RegisterPayload {
   name: string;
@@ -16,100 +21,64 @@ export interface RegisterPayload {
   password: string;
 }
 
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  access_token: string;
-  token_type: string;
-  institute_id: number;
-  role: string;
-}
-
-// ─── Auth Service ─────────────────────────────────────────────────────
+// ─── Service ─────────────────────────────────────────────────────────
 
 export const authService = {
-  
-  async register(payload: RegisterPayload): Promise<AuthResponse> {
-    try {
-      const { data } = await axios.post<AuthResponse>(
-        API_URLS.AUTH.REGISTER,
-        payload
-      );
 
-      if (data.access_token) {
-        this.saveToken(data.access_token);
-      }
+  async login(payload: LoginPayload) {
 
-      return data;
+    const response = await axios.post(
+      API_URLS.AUTH.LOGIN,
+      payload
+    );
 
-    } catch (err: unknown) {
+    localStorage.setItem(
+      "token",
+      response.data.access_token
+    );
 
-      if (axios.isAxiosError(err)) {
-        const message =
-          err.response?.data?.detail ||
-          "Registration failed";
-
-        throw new Error(
-          typeof message === "string"
-            ? message
-            : "Registration failed"
-        );
-      }
-
-      throw new Error("Network error");
-    }
+    return response.data;
   },
 
-  async login(payload: LoginPayload): Promise<AuthResponse> {
-    try {
-      const { data } = await axios.post<AuthResponse>(
-        API_URLS.AUTH.LOGIN,
-        payload
-      );
+  async register(payload: RegisterPayload) {
 
-      if (data.access_token) {
-        this.saveToken(data.access_token);
+    const response = await axios.post(
+      API_URLS.AUTH.REGISTER,
+      payload
+    );
+
+    localStorage.setItem(
+      "token",
+      response.data.access_token
+    );
+
+    return response.data;
+  },
+
+  async me() {
+
+    const token = localStorage.getItem("token");
+
+    const response = await axios.get(
+      API_URLS.AUTH.ME,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
 
-      return data;
-
-    } catch (err: unknown) {
-
-      if (axios.isAxiosError(err)) {
-        const message =
-          err.response?.data?.detail ||
-          "Invalid credentials";
-
-        throw new Error(
-          typeof message === "string"
-            ? message
-            : "Login failed"
-        );
-      }
-
-      throw new Error("Network error");
-    }
+    return response.data;
   },
 
-  // ─── Token Helpers ─────────────────────────────────────────────────
+  logout() {
 
-  saveToken(token: string): void {
-    localStorage.setItem("token", token);
-  },
-
-  getToken(): string | null {
-    return localStorage.getItem("token");
-  },
-
-  removeToken(): void {
     localStorage.removeItem("token");
+
+    window.location.href = "/login";
   },
 
-  logout(): void {
-    this.removeToken();
-    window.location.href = "/login";
+    saveToken(token: string) {
+    localStorage.setItem("token", token);
   },
 };

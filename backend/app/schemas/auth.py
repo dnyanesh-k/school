@@ -11,12 +11,13 @@ class RegisterRequest(BaseModel):
     admin_name: str
     password: str
 
-class UserOut(BaseModel):              # ← UserResponseDTO
+class UserOut(BaseModel):
     id: int
-    email: str
     full_name: str
     is_admin: bool
-    is_active: bool = True
+    email: EmailStr
+    institute_id: int
+    is_active: bool
 
 class LoginRequest(BaseModel):         # ← LoginRequestDTO
     email: EmailStr

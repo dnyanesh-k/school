@@ -42,7 +42,7 @@ export default function LoginPage() {
     try {
       const response = await authService.login({ email: form.email, password: form.password });
       authService.saveToken(response.access_token);
-      router.push("/dashboard");
+      router.push("/login");
     } catch (err: unknown) {
       setApiError(err instanceof Error ? err.message : "Login failed. Please try again.");
     } finally {
