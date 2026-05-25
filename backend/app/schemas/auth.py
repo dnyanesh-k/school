@@ -1,8 +1,14 @@
+# schemas/auth.py
 from pydantic import BaseModel, EmailStr
 
-class RegisterRequest(BaseModel):      # ← RegisterRequestDTO
+class RegisterRequest(BaseModel):
+    name: str
     email: EmailStr
-    full_name: str
+    phone: str
+    address: str
+    city: str
+    institute_type: str
+    admin_name: str
     password: str
 
 class UserOut(BaseModel):              # ← UserResponseDTO
@@ -10,7 +16,7 @@ class UserOut(BaseModel):              # ← UserResponseDTO
     email: str
     full_name: str
     is_admin: bool
-    is_active: bool
+    is_active: bool = True
 
 class LoginRequest(BaseModel):         # ← LoginRequestDTO
     email: EmailStr

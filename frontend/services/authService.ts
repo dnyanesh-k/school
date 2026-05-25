@@ -1,40 +1,9 @@
-// // frontend/services/authService.ts
-// import axios from "axios";
-// import { API_URLS } from "@/config/urls";
-
-// export const authService = {
-//   login: async (payload: any) => {
-//     // Direct Axios call
-//     const response = await axios.post(API_URLS.AUTH.LOGIN, payload);
-    
-//     if (response.data.access_token) {
-//       localStorage.setItem("token", response.data.access_token);
-//     }
-//     return response.data;
-//   },
-
-//   getMe: async () => {
-//     const token = localStorage.getItem("token");
-//     const response = await axios.get(API_URLS.AUTH.ME, {
-//       headers: {
-//         Authorization: `Bearer ${token}` // Manual token injection
-//       }
-//     });
-//     return response.data;
-//   }
-// };
-
+// frontend/services/authService.ts
 
 import axios from "axios";
+import { API_URLS } from "@/config/urls";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-const api = axios.create({
-  baseURL: API_BASE,
-  headers: { "Content-Type": "application/json" },
-});
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─────────────────────────────────────────────────────────────
 
 export interface RegisterPayload {
   name: string;
@@ -55,128 +24,92 @@ export interface LoginPayload {
 export interface AuthResponse {
   access_token: string;
   token_type: string;
-  institute_id: string;
+  institute_id: number;
   role: string;
 }
 
-export interface MeResponse {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  institute: {
-    id: string;
-    name: string;
-    city: string;
-    institute_type: string;
-    is_active: boolean;
-  };
-}
-
-// ─── Auth Service ─────────────────────────────────────────────────────────────
+// ─── Auth Service ─────────────────────────────────────────────────────
 
 export const authService = {
-
+  
   async register(payload: RegisterPayload): Promise<AuthResponse> {
     try {
-      const { data } = await api.post<AuthResponse>("/auth/register", payload);
-      return data;
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const msg = err.response?.data?.detail || "Registration failed. Please try again.";
-        throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+      const { data } = await axios.post<AuthResponse>(
+        API_URLS.AUTH.REGISTER,
+        payload
+      );
+
+      if (data.access_token) {
+        this.saveToken(data.access_token);
       }
-      throw new Error("Network error. Check your connection.");
+
+      return data;
+
+    } catch (err: unknown) {
+
+      if (axios.isAxiosError(err)) {
+        const message =
+          err.response?.data?.detail ||
+          "Registration failed";
+
+        throw new Error(
+          typeof message === "string"
+            ? message
+            : "Registration failed"
+        );
+      }
+
+      throw new Error("Network error");
     }
   },
 
   async login(payload: LoginPayload): Promise<AuthResponse> {
     try {
-      const { data } = await api.post<AuthResponse>("/auth/login", payload);
+      const { data } = await axios.post<AuthResponse>(
+        API_URLS.AUTH.LOGIN,
+        payload
+      );
+
+      if (data.access_token) {
+        this.saveToken(data.access_token);
+      }
+
       return data;
+
     } catch (err: unknown) {
+
       if (axios.isAxiosError(err)) {
-        const msg = err.response?.data?.detail || "Invalid email or password.";
-        throw new Error(typeof msg === "string" ? msg : "Login failed.");
+        const message =
+          err.response?.data?.detail ||
+          "Invalid credentials";
+
+        throw new Error(
+          typeof message === "string"
+            ? message
+            : "Login failed"
+        );
       }
-      throw new Error("Network error. Check your connection.");
+
+      throw new Error("Network error");
     }
   },
 
-  async me(token: string): Promise<MeResponse> {
-    try {
-      const { data } = await api.get<MeResponse>("/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return data;
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-        throw new Error("Session expired. Please login again.");
-      }
-      throw new Error("Failed to fetch user.");
-    }
-  },
-
-  // ─── Token helpers ──────────────────────────────────────────────────────────
+  // ─── Token Helpers ─────────────────────────────────────────────────
 
   saveToken(token: string): void {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("vt_token", token);
-    }
+    localStorage.setItem("token", token);
   },
 
   getToken(): string | null {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("vt_token");
-    }
-    return null;
+    return localStorage.getItem("token");
   },
 
   removeToken(): void {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("vt_token");
-    }
-  },
-
-  isLoggedIn(): boolean {
-    const token = this.getToken();
-    if (!token) return false;
-    try {
-      // Decode JWT payload (no verification — backend verifies)
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const now = Math.floor(Date.now() / 1000);
-      return payload.exp > now;
-    } catch {
-      return false;
-    }
-  },
-
-  getInstituteId(): string | null {
-    const token = this.getToken();
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload.institute_id || null;
-    } catch {
-      return null;
-    }
-  },
-
-  getRole(): string | null {
-    const token = this.getToken();
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload.role || null;
-    } catch {
-      return null;
-    }
+    localStorage.removeItem("token");
   },
 
   logout(): void {
     this.removeToken();
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
-    }
+    window.location.href = "/login";
   },
 };

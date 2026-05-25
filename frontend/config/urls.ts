@@ -1,5 +1,5 @@
 // frontend/config/urls.ts
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
 export const API_URLS = {
   AUTH: {
