@@ -1,9 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.student import StudentCreate, StudentUpdate
-from app.repositories.student_repository import StudentRepository
-from app.repositories.class_repository import ClassRepository
+
+from app.core.exceptions import ConflictError, NotFoundError, ValidationError
+from app.core.pagination import slice_page
+from app.core.tenant import verify_class
 from app.models.student import Student
-from app.core.exceptions import NotFoundError, ValidationError
+from app.repositories.class_repository import ClassRepository
+from app.repositories.student_repository import StudentRepository
+from app.schemas.pagination import PaginatedResponse, build_paginated, DEFAULT_PAGE, DEFAULT_PAGE_SIZE
+from app.schemas.student import StudentCreate, StudentUpdate
 
 
 class StudentService:
@@ -11,51 +15,62 @@ class StudentService:
         self.repo = StudentRepository(db)
         self.class_repo = ClassRepository(db)
 
-    async def create(self, payload: StudentCreate):
-        # Validate class association exists
-        class_obj = await self.class_repo.get_by_id(payload.class_id)
+    async def create(self, payload: StudentCreate, institute_id: int):
+        class_obj = await self.class_repo.get_by_id(payload.class_id, institute_id)
         if not class_obj:
             raise NotFoundError("Class")
 
-        # autogenerate roll number
-        count = await self.repo.get_count()
+        count = await self.repo.get_count(institute_id)
         new_roll_number = f"STU-{count + 1}"
 
-        # Convert Pydantic DTO to SQLAlchemy Model
         student_data = payload.model_dump()
         student_data["roll_number"] = new_roll_number
+        student_data["institute_id"] = institute_id
         student_db_obj = Student(**student_data)
 
         return await self.repo.create(student_db_obj)
 
-    async def get_all(self):
-        return await self.repo.list_all()
+    async def get_all(
+        self,
+        institute_id: int,
+        class_id: int | None = None,
+        page: int = DEFAULT_PAGE,
+        page_size: int = DEFAULT_PAGE_SIZE,
+        q: str | None = None,
+    ) -> PaginatedResponse:
+        page, page_size, _ = slice_page(page, page_size)
+        items, total = await self.repo.list_paginated(institute_id, class_id, page, page_size, search=q)
+        return build_paginated(items, total, page, page_size)
 
-    async def search(self, query: str):
-        if not query:
-            return await self.get_all()
-        # Logic: prepare the search string
-        search_term = f"%{query.strip()}%"
-        return await self.repo.search_students(search_term)
+    async def search(
+        self,
+        institute_id: int,
+        query: str,
+        page: int = DEFAULT_PAGE,
+        page_size: int = DEFAULT_PAGE_SIZE,
+    ):
+        q = query.strip() or None
+        return await self.get_all(institute_id, page=page, page_size=page_size, q=q)
 
-    async def update_student(self, roll_number: str, payload: StudentUpdate):
-        # 1. Find the student
-        student = await self.repo.get_by_roll_number(roll_number)
+    async def update_student(self, roll_number: str, payload: StudentUpdate, institute_id: int):
+        student = await self.repo.get_by_roll_number(roll_number, institute_id)
         if not student:
             raise NotFoundError("Student")
 
-        # 2. Update only the fields provided in the payload
-        update_data = payload.model_dump(
-            exclude_unset=True)  # exclude_unset is key!
+        update_data = payload.model_dump(exclude_unset=True)
+
+        if "class_id" in update_data:
+            class_obj = await self.class_repo.get_by_id(update_data["class_id"], institute_id)
+            if not class_obj:
+                raise NotFoundError("Class")
 
         for key, value in update_data.items():
             setattr(student, key, value)
 
-        # 3. Save changes
         return await self.repo.update(student)
 
-    async def delete_student(self, roll_number: str) -> None:
-        student = await self.repo.get_by_roll_number(roll_number)
+    async def delete_student(self, roll_number: str, institute_id: int) -> None:
+        student = await self.repo.get_by_roll_number(roll_number, institute_id)
         if not student:
             raise NotFoundError("Student")
         await self.repo.delete(student)

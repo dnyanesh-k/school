@@ -1,0 +1,116 @@
+from datetime import date, timedelta
+
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.fee import FeePlan, Installment
+from app.models.student import Student
+from app.models.test import Test
+from app.repositories.attendance_repository import AttendanceRepository
+from app.repositories.fee_repository import FeeRepository
+from app.schemas.dashboard import DashboardSummaryOut
+
+
+class DashboardService:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+        self.attendance_repo = AttendanceRepository(db)
+        self.fee_repo = FeeRepository(db)
+
+    async def get_summary(self, institute_id: int) -> DashboardSummaryOut:
+        today = date.today()
+        month_start = today.replace(day=1)
+        week_start = today - timedelta(days=today.weekday())
+        week_end = week_start + timedelta(days=6)
+
+        student_result = await self.db.execute(
+            select(func.count(Student.id)).where(
+                Student.institute_id == institute_id,
+                Student.is_deleted == False,
+                Student.is_active == True,
+            )
+        )
+        total_students = student_result.scalar() or 0
+
+        fee_result = await self.db.execute(
+            select(
+                func.coalesce(func.sum(FeePlan.paid_amount), 0),
+                func.coalesce(func.sum(FeePlan.total_amount), 0),
+            )
+            .join(Student, FeePlan.student_id == Student.id)
+            .where(
+                Student.institute_id == institute_id,
+                FeePlan.is_deleted == False,
+            )
+        )
+        paid_total, fee_total = fee_result.one()
+        fees_collected = int(paid_total or 0)
+        fee_total_int = int(fee_total or 0)
+        fees_pending = max(fee_total_int - fees_collected, 0)
+        collection_rate_pct = (
+            round((fees_collected / fee_total_int) * 100, 1) if fee_total_int > 0 else 0.0
+        )
+
+        month_collected_result = await self.db.execute(
+            select(func.coalesce(func.sum(Installment.amount), 0))
+            .join(FeePlan, Installment.fee_plan_id == FeePlan.id)
+            .join(Student, FeePlan.student_id == Student.id)
+            .where(
+                Student.institute_id == institute_id,
+                FeePlan.is_deleted == False,
+                Installment.is_deleted == False,
+                Installment.paid_date.isnot(None),
+                Installment.paid_date >= month_start,
+                Installment.paid_date <= today,
+            )
+        )
+        fees_collected_this_month = int(month_collected_result.scalar() or 0)
+
+        overdue_installments = await self.fee_repo.get_unpaid_installments(today, institute_id)
+        defaulter_student_ids = {
+            item.fee_plan.student_id
+            for item in overdue_installments
+            if item.fee_plan and item.fee_plan.student and item.fee_plan.student.is_active
+        }
+        fee_defaulters_count = len(defaulter_student_ids)
+
+        records = await self.attendance_repo.get_for_date(today, institute_id)
+        absent_ids = {record.student_id for record in records if record.status == "absent"}
+        absent_today_count = len(absent_ids)
+        attendance_pct = 0.0
+        if total_students > 0:
+            present_count = total_students - absent_today_count
+            attendance_pct = round((present_count / total_students) * 100, 1)
+
+        tests_week_result = await self.db.execute(
+            select(func.count(Test.id)).where(
+                Test.institute_id == institute_id,
+                Test.is_deleted == False,
+                Test.scheduled_date >= week_start,
+                Test.scheduled_date <= week_end,
+            )
+        )
+        tests_this_week = tests_week_result.scalar() or 0
+
+        pending_scores_result = await self.db.execute(
+            select(func.count(Test.id)).where(
+                Test.institute_id == institute_id,
+                Test.is_deleted == False,
+                Test.scheduled_date < today,
+                Test.is_published == False,
+            )
+        )
+        tests_pending_scores = pending_scores_result.scalar() or 0
+
+        return DashboardSummaryOut(
+            total_students=total_students,
+            attendance_today_pct=attendance_pct,
+            absent_today_count=absent_today_count,
+            fees_collected=fees_collected,
+            fees_collected_this_month=fees_collected_this_month,
+            fees_pending=fees_pending,
+            collection_rate_pct=collection_rate_pct,
+            fee_defaulters_count=fee_defaulters_count,
+            tests_this_week=tests_this_week,
+            tests_pending_scores=tests_pending_scores,
+        )

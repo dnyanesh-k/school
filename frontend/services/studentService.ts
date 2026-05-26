@@ -1,5 +1,7 @@
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
+import type { PaginatedResult, PaginationParams } from "@/lib/pagination";
+import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
 export interface Student {
   id: number;
@@ -23,11 +25,16 @@ export interface CreateStudentPayload {
 }
 
 export const studentService = {
+  async list(params: { classId?: number; page?: number; page_size?: number; q?: string } = {}) {
+    const query: Record<string, string | number> = {
+      page: params.page ?? 1,
+      page_size: params.page_size ?? DEFAULT_PAGE_SIZE,
+    };
+    if (params.classId) query.class_id = params.classId;
+    if (params.q) query.q = params.q;
 
-  async list(classId?: number) {
-    const params = classId ? { class_id: classId } : {};
-    const response = await api.get(API_URLS.STUDENTS.LIST, { params });
-    return response.data;
+    const response = await api.get(API_URLS.STUDENTS.LIST, { params: query });
+    return response.data as PaginatedResult<Student>;
   },
 
   async get(id: number) {

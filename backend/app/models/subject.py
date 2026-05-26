@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
@@ -6,6 +6,7 @@ from app.db.session import Base
 
 class Subject(Base):
     __tablename__ = "subjects"
+    __table_args__ = (Index("ix_subjects_class_id", "class_id"),)
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)

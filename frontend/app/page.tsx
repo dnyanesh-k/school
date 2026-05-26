@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 
 /* ── Icons ─────────────────────────────────────────────────────────── */
 const ArrowRight = () => (
@@ -251,7 +251,7 @@ function FeesVisual() {
 
 /* ── Feature section ────────────────────────────────────────────────── */
 function FeatureBlock({ label, title, desc, checks, visual }: {
-  label: string; title: string; desc: string; checks: string[]; visual: React.ReactNode;
+  label: string; title: string; desc: string; checks: string[]; visual: ReactNode;
 }) {
   return (
     <div style={{ padding: "64px 24px", display: "flex", flexDirection: "column", gap: 32 }}>

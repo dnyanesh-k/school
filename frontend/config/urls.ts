@@ -7,6 +7,14 @@ export const API_URLS = {
     REGISTER: `${BASE_URL}/auth/register`,
     ME: `${BASE_URL}/auth/me`,
   },
+  ADMIN: {
+    STATS: `${BASE_URL}/admin/stats`,
+    INSTITUTES: `${BASE_URL}/admin/institutes`,
+    INSTITUTE_STATUS: (id: number) => `${BASE_URL}/admin/institutes/${id}/status`,
+  },
+  USERS: {
+    TEACHERS: `${BASE_URL}/users/teachers`,
+  },
   INSTITUTE: {
     ME:            `${BASE_URL}/institute/me`,
     ACADEMIC_YEAR: `${BASE_URL}/institute/academic-year`,
@@ -22,6 +30,7 @@ export const API_URLS = {
     DETAIL:        (id: number) => `${BASE_URL}/students/${id}`,
   },
   FEES: {
+    SUMMARY:       `${BASE_URL}/fees/summary`,
     PLAN:          `${BASE_URL}/fees/plan`,
     PLAN_BY_STUDENT: (studentId: number) => `${BASE_URL}/fees/plan/${studentId}`,
     PAY_INSTALLMENT: (id: number) => `${BASE_URL}/installments/${id}/pay`,

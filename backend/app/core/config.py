@@ -27,5 +27,10 @@ class Settings(BaseSettings):
     # CORS
     allowed_origins: list[str] = ["http://localhost:3000"]
 
+    # Platform admin bootstrap (optional — set in .env for first run)
+    platform_admin_email: str | None = None
+    platform_admin_password: str | None = None
+    platform_admin_name: str = "Platform Admin"
+
 
 settings = Settings()

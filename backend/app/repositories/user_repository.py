@@ -1,5 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from app.core.soft_delete import soft_delete
 from app.models.user import User
 
 
@@ -20,11 +22,23 @@ class UserRepository:
 
     async def get_by_id(self, user_id: int) -> User | None:
         result = await self.db.execute(
-            select(User).where(User.id == user_id, User.is_deleted == False)
+            select(User)
+            .options(selectinload(User.institute))
+            .where(User.id == user_id, User.is_deleted == False)
         )
         return result.scalar_one_or_none()
 
+    async def list_by_institute(self, institute_id: int) -> list[User]:
+        result = await self.db.execute(
+            select(User)
+            .where(
+                User.institute_id == institute_id,
+                User.is_deleted == False,
+            )
+            .order_by(User.full_name)
+        )
+        return list(result.scalars().all())
+
     async def delete(self, user: User) -> None:
-        user.is_deleted = True
-        await self.db.commit()
-        await self.db.refresh(user)
+        user.is_active = False
+        await soft_delete(self.db, user)

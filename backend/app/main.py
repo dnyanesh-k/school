@@ -9,6 +9,21 @@ from app.core.config import settings
 from app.db.session import Base, engine
 from app.api.v1.router import v1_router
 from app.core.handlers import register_exception_handlers
+from app.services.platform_admin_seed import ensure_platform_admin
+from app.models import (  # noqa: F401 — register SQLAlchemy models with metadata
+    Admission,
+    Attendance,
+    Class,
+    FeePlan,
+    Holiday,
+    Installment,
+    Institute,
+    Student,
+    Subject,
+    Test,
+    TestScore,
+    User,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +33,8 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up …")
     async with engine.begin() as conn:
         await conn.execute(text("SELECT 1"))
-        # 1. ADD THIS LINE: Force drop old tables to wipe the old schema
-        logger.info("Dropping all existing tables...")
-        # verify DB reachable
-        # await conn.run_sync(Base.metadata.drop_all)
-        # create tables (no Alembic)
-        # await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(Base.metadata.create_all)
+    await ensure_platform_admin()
     logger.info("Database ready.")
     yield
     logger.info("Shutting down …")

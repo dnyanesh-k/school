@@ -1,6 +1,8 @@
 import enum
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime
+
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.sql import func
+
 from app.db.session import Base
 
 class AdmissionStatus(str, enum.Enum):
@@ -16,3 +18,4 @@ class Admission(Base):
     status = Column(Enum(AdmissionStatus), default=AdmissionStatus.PENDING)
     applied_date = Column(DateTime(timezone=True), server_default=func.now())
     remarks = Column(String, nullable=True)
+    is_deleted = Column(Boolean, default=False, nullable=False)

@@ -2,12 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { TopBar } from "@/components/layout/TopBar";
+import { TabAddButton } from "@/components/layout/TabAddButton";
+import { ClassFilterTabs } from "@/components/common/ClassFilterTabs";
+import { BottomSheet } from "@/components/common/BottomSheet";
 import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
+import { Select } from "@/components/ui/Select";
+import { DateInput } from "@/components/ui/DateInput";
+import { FormField } from "@/components/ui/FormField";
 import { ErrorMsg } from "@/components/ui/ErrorMsg";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/hooks/useToast";
 import { studentService, type Student, type CreateStudentPayload } from "@/services/studentService";
+import { Pagination } from "@/components/common/Pagination";
+import { ListSkeleton } from "@/components/ui/Skeleton";
+import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 import { feeService } from "@/services/feeService";
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
@@ -26,41 +34,17 @@ function getInitials(name: string) {
 }
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
-function EmptyState({ hasClasses, onAdd }: { hasClasses: boolean; onAdd: () => void }) {
+function EmptyState({ hasClasses }: { hasClasses: boolean }) {
   return (
-    <div style={{
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      padding: "60px 24px", textAlign: "center", gap: 12,
-    }}>
-      <div style={{
-        width: 64, height: 64, borderRadius: "50%",
-        background: "var(--brand-accent)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        marginBottom: 4,
-      }}>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="var(--brand-primary)" strokeWidth="1.75" strokeLinecap="round" />
-          <circle cx="9" cy="7" r="4" stroke="var(--brand-primary)" strokeWidth="1.75" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="var(--brand-primary)" strokeWidth="1.75" strokeLinecap="round" />
-        </svg>
-      </div>
-      <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "16px", color: "var(--ink-900)" }}>
+    <div className="vt-empty animate-fadeUp">
+      <p className="vt-empty-title">
         {hasClasses ? "No students yet" : "No classes set up"}
       </p>
-      <p style={{ fontSize: "14px", color: "var(--ink-500)", lineHeight: 1.5, maxWidth: 260 }}>
+      <p className="vt-empty-desc">
         {hasClasses
-          ? "Add your first student to get started."
+          ? "Use Add student above to enroll your first student."
           : "Go to Settings and add classes before adding students."}
       </p>
-      {hasClasses && (
-        <Button variant="primary" onClick={onAdd} fullWidth={false} flex={0}
-          // @ts-ignore
-          style={{ marginTop: 8, padding: "0 24px" }}
-        >
-          Add First Student
-        </Button>
-      )}
     </div>
   );
 }
@@ -187,132 +171,87 @@ function AddStudentSheet({
 
   if (!open) return null;
 
-  const fieldGap = { marginBottom: "14px" };
-
   return (
-    <>
-      {/* Backdrop */}
-      <div onClick={onClose} style={{
-        position: "fixed", inset: 0,
-        background: "rgba(0,0,0,0.4)",
-        zIndex: 200,
-      }} />
-
-      {/* Sheet */}
-      <div style={{
-        position: "fixed",
-        bottom: 0, left: 0, right: 0,
-        background: "var(--surface-0)",
-        borderRadius: "var(--radius-xl) var(--radius-xl) 0 0",
-        zIndex: 201,
-        maxHeight: "90dvh",
-        overflowY: "auto",
-        padding: "0 20px 40px",
-        maxWidth: "560px",
-        margin: "0 auto",
-      }}>
-        {/* Handle */}
-        <div style={{
-          width: 36, height: 4,
-          background: "var(--ink-200)",
-          borderRadius: 2,
-          margin: "12px auto 20px",
-        }} />
-
-        {/* Header */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginBottom: "20px",
-        }}>
-          <h2 style={{
-            fontFamily: "var(--font-display)", fontWeight: 700,
-            fontSize: "18px", color: "var(--ink-900)",
-          }}>
-            Add Student
-          </h2>
-          <button onClick={onClose} style={{
-            background: "none", border: "none", cursor: "pointer",
-            padding: 4, color: "var(--ink-400)",
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Form */}
-        <div style={fieldGap}>
-          <Label required>Full Name</Label>
-          <Input placeholder="Student's full name" value={form.full_name} onChange={set("full_name")} error={errors.full_name} />
-          <ErrorMsg msg={errors.full_name} />
-        </div>
-
-        <div style={fieldGap}>
-          <Label required>Class</Label>
-          <select
-            value={form.class_id}
-            onChange={e => set("class_id")(e.target.value)}
-            style={{
-              width: "100%",
-              minHeight: "56px",
-              padding: "0 44px 0 16px",
-              border: `1.5px solid ${errors.class_id ? "var(--error)" : "var(--ink-300)"}`,
-              borderRadius: "calc(var(--radius-lg) + 2px)",
-              fontSize: "15px",
-              fontFamily: "var(--font-body)",
-              color: form.class_id ? "var(--ink-900)" : "var(--ink-500)",
-              background: "var(--surface-0) url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23003A66\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'/%3E%3C/svg%3E') no-repeat right 16px center",
-              outline: "none",
-              WebkitAppearance: "none",
-              appearance: "none",
-              cursor: "pointer",
-            }}
-          >
-            <option value="">Select class</option>
-            {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <ErrorMsg msg={errors.class_id} />
-        </div>
-
-        <div style={fieldGap}>
-          <Label required>Admission Date</Label>
-          <Input type="date" placeholder="" value={form.admission_date} onChange={set("admission_date")} error={errors.admission_date} />
-          <ErrorMsg msg={errors.admission_date} />
-        </div>
-
-        <div style={fieldGap}>
-          <Label required>Parent Name</Label>
-          <Input placeholder="Parent's full name" value={form.parent_name} onChange={set("parent_name")} error={errors.parent_name} />
-          <ErrorMsg msg={errors.parent_name} />
-        </div>
-
-        <div style={fieldGap}>
-          <Label required>Parent Phone</Label>
-          <Input type="tel" placeholder="9876543210" value={form.parent_phone} onChange={set("parent_phone")} error={errors.parent_phone} prefix="+91" />
-          <ErrorMsg msg={errors.parent_phone} />
-        </div>
-
-        <div style={{ marginBottom: "20px" }}>
-          <Label>Address</Label>
-          <Input placeholder="Address (optional)" value={form.address} onChange={set("address")} />
-        </div>
-
-        {apiError && (
-          <div style={{
-            padding: "12px 14px", background: "var(--error-bg)",
-            border: "1px solid var(--error-border)", borderRadius: "var(--radius-md)",
-            fontSize: "13px", color: "var(--error)", marginBottom: "16px",
-            display: "flex", alignItems: "center", gap: 8,
-          }}>
-            <span>⚠</span> {apiError}
-          </div>
-        )}
-
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      title="Add Student"
+      footer={
         <Button variant="primary" onClick={submit} loading={loading} disabled={loading} fullWidth>
           {loading ? "Adding..." : "Add Student"}
         </Button>
-      </div>
-    </>
+      }
+    >
+      <FormField label="Full Name" required error={errors.full_name}>
+        <Input
+          placeholder="Student's full name"
+          value={form.full_name}
+          onChange={set("full_name")}
+          error={errors.full_name}
+        />
+      </FormField>
+
+      <FormField label="Class" required error={errors.class_id}>
+        <Select
+          value={form.class_id}
+          onChange={set("class_id")}
+          placeholder="Select class"
+          error={errors.class_id}
+          options={classes.map((c) => ({ value: String(c.id), label: c.name }))}
+        />
+      </FormField>
+
+      <FormField label="Admission Date" required error={errors.admission_date}>
+        <DateInput
+          value={form.admission_date}
+          onChange={set("admission_date")}
+          error={errors.admission_date}
+        />
+      </FormField>
+
+      <FormField label="Parent Name" required error={errors.parent_name}>
+        <Input
+          placeholder="Parent's full name"
+          value={form.parent_name}
+          onChange={set("parent_name")}
+          error={errors.parent_name}
+        />
+      </FormField>
+
+      <FormField label="Parent Phone" required error={errors.parent_phone}>
+        <Input
+          type="tel"
+          placeholder="9876543210"
+          value={form.parent_phone}
+          onChange={set("parent_phone")}
+          error={errors.parent_phone}
+          prefix="+91"
+        />
+      </FormField>
+
+      <FormField label="Address">
+        <Input placeholder="Address (optional)" value={form.address} onChange={set("address")} />
+      </FormField>
+
+      {apiError && (
+        <div
+          style={{
+            padding: "12px 14px",
+            background: "var(--error-bg)",
+            border: "1px solid var(--error-border)",
+            borderRadius: "var(--radius-md)",
+            fontSize: "13px",
+            color: "var(--error)",
+            marginBottom: "16px",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span>⚠</span> {apiError}
+        </div>
+      )}
+    </BottomSheet>
   );
 }
 
@@ -461,6 +400,9 @@ export default function StudentsPage() {
   const [classes, setClasses] = useState<Class[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [feeStudent, setFeeStudent] = useState<Student | null>(null);
@@ -476,121 +418,66 @@ export default function StudentsPage() {
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      const data = await studentService.list(selectedClass ?? undefined);
-      setStudents(data);
+      const data = await studentService.list({
+        classId: selectedClass ?? undefined,
+        page,
+        page_size: DEFAULT_PAGE_SIZE,
+      });
+      setStudents(data.items);
+      setTotalPages(data.total_pages);
+      setTotal(data.total);
     } catch {
       setStudents([]);
+      setTotalPages(1);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchStudents(); }, [selectedClass]);
+  useEffect(() => {
+    setPage(1);
+  }, [selectedClass]);
+
+  useEffect(() => { fetchStudents(); }, [selectedClass, page]);
 
   return (
     <>
       <TopBar title="Students" />
 
-      {/* ── Add button in topbar area — floated right ── */}
-      <button
-        onClick={() => setShowAdd(true)}
-        style={{
-          position: "fixed", top: 12, right: 16,
-          zIndex: 100,
-          display: "flex", alignItems: "center", gap: 6,
-          height: 36, padding: "0 14px",
-          background: "var(--brand-primary)",
-          border: "none", borderRadius: "var(--radius-md)",
-          fontSize: "13px", fontWeight: 600, color: "white",
-          cursor: "pointer", fontFamily: "var(--font-display)",
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
-        Add
-      </button>
+      <ClassFilterTabs
+        classes={classes}
+        selectedClass={selectedClass}
+        onSelect={setSelectedClass}
+        showAll
+      />
 
-      {/* ── Class filter tabs ── */}
-      <div style={{
-        display: "flex", gap: 8, overflowX: "auto",
-        padding: "0 0 12px",
-        scrollbarWidth: "none",
-        marginBottom: 4,
-      }}>
-        {/* All tab */}
-        <button
-          onClick={() => setSelectedClass(null)}
-          style={{
-            flexShrink: 0,
-            padding: "7px 16px",
-            borderRadius: "var(--radius-full)",
-            border: "1.5px solid",
-            borderColor: selectedClass === null ? "var(--brand-primary)" : "var(--ink-200)",
-            background: selectedClass === null ? "var(--brand-accent)" : "var(--surface-0)",
-            fontSize: "13px", fontWeight: selectedClass === null ? 600 : 400,
-            color: selectedClass === null ? "var(--brand-primary)" : "var(--ink-500)",
-            cursor: "pointer", fontFamily: "var(--font-body)",
-            transition: "all 0.15s ease",
-          }}
-        >
-          All
-        </button>
-
-        {classes.map(c => (
-          <button
-            key={c.id}
-            onClick={() => setSelectedClass(c.id)}
-            style={{
-              flexShrink: 0,
-              padding: "7px 16px",
-              borderRadius: "var(--radius-full)",
-              border: "1.5px solid",
-              borderColor: selectedClass === c.id ? "var(--brand-primary)" : "var(--ink-200)",
-              background: selectedClass === c.id ? "var(--brand-accent)" : "var(--surface-0)",
-              fontSize: "13px", fontWeight: selectedClass === c.id ? 600 : 400,
-              color: selectedClass === c.id ? "var(--brand-primary)" : "var(--ink-500)",
-              cursor: "pointer", fontFamily: "var(--font-body)",
-              transition: "all 0.15s ease",
-            }}
-          >
-            {c.name}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Student count ── */}
-      {!loading && students.length > 0 && (
-        <p style={{ fontSize: "12px", color: "var(--ink-400)", marginBottom: 12 }}>
-          {students.length} student{students.length !== 1 ? "s" : ""}
-        </p>
-      )}
-
-      {/* ── Loading ── */}
-      {loading && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {[1, 2, 3].map(i => (
-            <div key={i} style={{
-              height: 80, borderRadius: "var(--radius-lg)",
-              background: "var(--ink-100)",
-              animation: "pulse 1.5s ease-in-out infinite",
-            }} />
-          ))}
+      {!loading && classes.length > 0 && (
+        <div className="vt-tab-toolbar">
+          <p className="vt-tab-count">
+            {students.length > 0 ? `${total} student${total !== 1 ? "s" : ""}` : "No students yet"}
+          </p>
+          <TabAddButton label="Add student" onClick={() => setShowAdd(true)} />
         </div>
       )}
 
+      {loading && <ListSkeleton count={4} />}
+
       {/* ── Empty state ── */}
       {!loading && students.length === 0 && (
-        <EmptyState hasClasses={classes.length > 0} onAdd={() => setShowAdd(true)} />
+        <EmptyState hasClasses={classes.length > 0} />
       )}
 
       {/* ── Student list ── */}
       {!loading && students.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {students.map(s => (
-            <StudentCard key={s.id} student={s} onViewFees={setFeeStudent} />
-          ))}
-        </div>
+        <>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {students.map(s => (
+              <StudentCard key={s.id} student={s} onViewFees={setFeeStudent} />
+            ))}
+          </div>
+          <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} loading={loading} />
+        </>
       )}
 
       {/* ── Add student sheet ── */}

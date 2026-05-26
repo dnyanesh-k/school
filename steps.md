@@ -95,3 +95,4 @@ Test on desktop → Test on mobile → Move to next step
 Never start Step N+1 until Step N works end to end on mobile. Your primary user is on a phone.
 
 **Start with Step 1 frontend now?**
+and there shuould very things user shoukd add most should be option and all

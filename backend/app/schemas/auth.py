@@ -1,5 +1,10 @@
 # schemas/auth.py
-from pydantic import BaseModel, EmailStr
+from typing import Optional
+
+from pydantic import BaseModel, EmailStr, Field
+
+from app.core.roles import Role
+
 
 class RegisterRequest(BaseModel):
     name: str
@@ -9,24 +14,44 @@ class RegisterRequest(BaseModel):
     city: str
     institute_type: str
     admin_name: str
-    password: str
+    password: str = Field(min_length=8)
+
 
 class UserOut(BaseModel):
     id: int
     full_name: str
-    is_admin: bool
     email: EmailStr
-    institute_id: int
+    role: str
+    is_admin: bool
+    institute_id: Optional[int] = None
+    institute_name: Optional[str] = None
+    institute_status: Optional[str] = None
     is_active: bool
 
-class LoginRequest(BaseModel):         # ← LoginRequestDTO
+    model_config = {"from_attributes": True}
+
+
+class RegisterResponse(BaseModel):
+    success: bool = True
+    message: str
+    user: UserOut
+    institute_status: str
+
+
+class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
     model_config = {"from_attributes": True}
 
+
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str
-    user: UserOut  # This nests your existing UserOut DTO
+    user: UserOut
 
+
+class CreateTeacherRequest(BaseModel):
+    full_name: str
+    email: EmailStr
+    password: str = Field(min_length=8)

@@ -1,5 +1,20 @@
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
+import { DEV_BYPASS_AUTH } from "@/lib/dev";
+
+export type UserRole = "platform_admin" | "institute_admin" | "teacher";
+
+export interface AuthUser {
+  id: number;
+  full_name: string;
+  email: string;
+  role: UserRole;
+  is_admin: boolean;
+  institute_id: number | null;
+  institute_name: string | null;
+  institute_status: string | null;
+  is_active: boolean;
+}
 
 export interface RegisterPayload {
   name: string;
@@ -17,23 +32,66 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  user: AuthUser;
+  institute_status: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user: AuthUser;
+}
+
+function decodeToken() {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+}
+
+export function getErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (error as { response?: { data?: { message?: string } } }).response;
+    if (response?.data?.message) return response.data.message;
+  }
+  return fallback;
+}
+
 export const authService = {
 
-  async register(payload: RegisterPayload) {
+  async register(payload: RegisterPayload): Promise<RegisterResponse> {
     const response = await api.post(API_URLS.AUTH.REGISTER, payload);
-    localStorage.setItem("token", response.data.access_token);
-    return response.data;
+    return response.data as RegisterResponse;
   },
 
-  async login(payload: LoginPayload) {
+  async login(payload: LoginPayload): Promise<LoginResponse> {
     const response = await api.post(API_URLS.AUTH.LOGIN, payload);
     localStorage.setItem("token", response.data.access_token);
-    return response.data;
+    return response.data as LoginResponse;
   },
 
-  async me() {
+  async me(): Promise<AuthUser> {
+    if (DEV_BYPASS_AUTH) {
+      return {
+        id: 1,
+        full_name: "Dev User",
+        email: "dev@example.com",
+        role: "institute_admin",
+        is_admin: true,
+        institute_id: 1,
+        institute_name: "Demo Institute",
+        institute_status: "active",
+        is_active: true,
+      };
+    }
     const response = await api.get(API_URLS.AUTH.ME);
-    return response.data;
+    return response.data as AuthUser;
   },
 
   logout() {
@@ -42,29 +100,37 @@ export const authService = {
   },
 
   isLoggedIn(): boolean {
-    const token = localStorage.getItem("token");
-    if (!token) return false;
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload.exp > Math.floor(Date.now() / 1000);
-    } catch {
-      return false;
-    }
+    if (DEV_BYPASS_AUTH) return true;
+    const payload = decodeToken();
+    if (!payload) return false;
+    return payload.exp > Math.floor(Date.now() / 1000);
   },
 
-  getInstituteId(): string | null {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    try {
-      return JSON.parse(atob(token.split(".")[1])).institute_id || null;
-    } catch { return null; }
+  getInstituteId(): number | null {
+    if (DEV_BYPASS_AUTH) return 1;
+    const payload = decodeToken();
+    return payload?.institute_id ?? null;
   },
 
-  getRole(): string | null {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    try {
-      return JSON.parse(atob(token.split(".")[1])).role || null;
-    } catch { return null; }
+  getRole(): UserRole | null {
+    if (DEV_BYPASS_AUTH) return "institute_admin";
+    const payload = decodeToken();
+    return (payload?.role as UserRole) ?? null;
+  },
+
+  isPlatformAdmin(): boolean {
+    return authService.getRole() === "platform_admin";
+  },
+
+  isInstituteAdmin(): boolean {
+    return authService.getRole() === "institute_admin";
+  },
+
+  isTeacher(): boolean {
+    return authService.getRole() === "teacher";
+  },
+
+  getHomeRoute(): string {
+    return authService.isPlatformAdmin() ? "/admin" : "/dashboard";
   },
 };

@@ -1,8 +1,9 @@
 # models/institute.py
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, DateTime, Integer, String, func
 from sqlalchemy.orm import relationship
 
+from app.core.roles import InstituteStatus
 from app.db.session import Base
 
 
@@ -19,5 +20,8 @@ class Institute(Base):
     city = Column(String, nullable=False)
 
     institute_type = Column(String, nullable=False)
+    status = Column(String, default=InstituteStatus.PENDING.value, nullable=False, index=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     users = relationship("User", back_populates="institute")

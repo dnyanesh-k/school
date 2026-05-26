@@ -3,35 +3,35 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
-import { Sidebar }   from "./Sidebar";
+import { InstituteProvider } from "@/contexts/InstituteContext";
+import { Sidebar } from "./Sidebar";
 import { BottomTab } from "./BottomTab";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
-  // Auth guard
   useEffect(() => {
-    if (!authService.isLoggedIn()) router.replace("/login");
+    if (!authService.isLoggedIn()) {
+      router.replace("/login");
+      return;
+    }
+
+    if (authService.isPlatformAdmin()) {
+      router.replace("/admin");
+    }
   }, [router]);
 
   return (
-    <>
-      {/* ── Desktop sidebar (hidden on mobile via CSS) ── */}
+    <InstituteProvider>
       <div className="vt-sidebar">
         <Sidebar />
       </div>
 
-      {/* ── Main content ── */}
-      <main className="vt-main">
-        {children}
-      </main>
+      <main className="vt-main">{children}</main>
 
-      {/* ── Mobile bottom tab (hidden on desktop via CSS) ── */}
       <div className="vt-bottomtab">
         <BottomTab />
       </div>
-
-
-    </>
+    </InstituteProvider>
   );
 }

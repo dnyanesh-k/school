@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
+import { TabAddButton } from "@/components/layout/TabAddButton";
+import { PageContent } from "@/components/layout/PageContent";
+import { Pagination } from "@/components/common/Pagination";
 import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
-import { ErrorMsg } from "@/components/ui/ErrorMsg";
+import { Select } from "@/components/ui/Select";
+import { DateInput } from "@/components/ui/DateInput";
+import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/common/BottomSheet";
 import { ItemCard } from "@/components/common/ItemCard";
@@ -12,6 +17,11 @@ import { useToast } from "@/hooks/useToast";
 import { classService } from "@/services/classService";
 import { testService, type Test, type CreateTestPayload } from "@/services/testService";
 import { subjectService, type Subject } from "@/services/subjectService";
+import { TeamTab } from "@/components/settings/TeamTab";
+import { SettingsTabIcon } from "@/components/settings/SettingsTabIcon";
+import { TestListItem } from "@/components/settings/TestListItem";
+import { ListSkeleton } from "@/components/ui/Skeleton";
+import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Class {
@@ -24,94 +34,33 @@ interface FieldError {
     [key: string]: string;
 }
 
-type TabType = "classes" | "subjects" | "tests";
+type TabType = "classes" | "subjects" | "tests" | "team";
+
+const TAB_QUERY_VALUES: TabType[] = ["classes", "subjects", "tests", "team"];
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
-function EmptyState({ type, onAdd }: { type: string; onAdd: () => void }) {
+function EmptyState({ type }: { type: string }) {
     const messages: { [key: string]: { title: string; desc: string } } = {
         classes: {
             title: "No classes yet",
-            desc: "Add your first class to get started. You'll need at least one class before adding students.",
+            desc: "Use Add class above to create your first class.",
         },
         subjects: {
             title: "No subjects yet",
-            desc: "Create subjects for a class so tests can be mapped to the right syllabus.",
+            desc: "Use Add subject above to create subjects for this class.",
         },
         tests: {
             title: "No tests yet",
-            desc: "Create your first test to start tracking student performance.",
+            desc: "Use Add test above to schedule your first exam.",
         },
     };
 
     const msg = messages[type] || messages.classes;
 
     return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "60px 24px",
-                textAlign: "center",
-                gap: 12,
-            }}
-        >
-            <div
-                style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: "50%",
-                    background: "var(--brand-accent)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 4,
-                }}
-            >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                    <path
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"
-                        fill="var(--brand-primary)"
-                    />
-                </svg>
-            </div>
-            <p
-                style={{
-                    fontFamily: "var(--font-display)",
-                    fontWeight: 600,
-                    fontSize: "16px",
-                    color: "var(--ink-900)",
-                }}
-            >
-                {msg.title}
-            </p>
-            <p
-                style={{
-                    fontSize: "14px",
-                    color: "var(--ink-500)",
-                    lineHeight: 1.5,
-                    maxWidth: 280,
-                }}
-            >
-                {msg.desc}
-            </p>
-            <Button
-                variant="primary"
-                onClick={onAdd}
-                fullWidth={false}
-                flex={0}
-                // @ts-ignore
-                style={{ marginTop: 12, padding: "0 24px" }}
-            >
-                {type === "classes"
-                    ? "Add Class"
-                    : type === "subjects"
-                        ? "Add Subject"
-                        : type === "subject"
-                            ? "Add Subject"
-                            : "Add Test"}
-            </Button>
+        <div className="vt-empty animate-fadeUp">
+            <p className="vt-empty-title">{msg.title}</p>
+            <p className="vt-empty-desc">{msg.desc}</p>
         </div>
     );
 }
@@ -250,7 +199,7 @@ function ItemSheet({
                     : `Add ${type === "class" ? "Class" : type === "subject" ? "Subject" : "Test"}`
             }
             footer={
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <div className="vt-sheet-actions">
                     <Button variant="secondary" onClick={onClose} disabled={loading} fullWidth>
                         Cancel
                     </Button>
@@ -273,62 +222,44 @@ function ItemSheet({
             }
         >
             {type === "class" && (
-                <>
-                    <div style={{ marginBottom: "14px" }}>
-                        <Label required>Class Name</Label>
-                        <Input
-                            placeholder='e.g., "Class 9", "Grade 10"'
-                            value={form.name}
-                            onChange={(value) => {
-                                setForm((prev: any) => ({ ...prev, name: value }));
-                                setErrors((prev) => ({ ...prev, name: "" }));
-                            }}
-                            error={errors.name}
-                            autoComplete="off"
-                        />
-                        <ErrorMsg msg={errors.name} />
-                    </div>
-                    <p style={{ fontSize: "12px", color: "var(--ink-500)", marginBottom: "20px", lineHeight: 1.5 }}>
-                        Enter the class name or identifier. Examples: Class 1, Grade 9, Section A, etc.
-                    </p>
-                </>
+                <FormField
+                    label="Class Name"
+                    required
+                    error={errors.name}
+                    hint='Examples: Class 1, Grade 9, Section A'
+                >
+                    <Input
+                        placeholder='e.g., "Class 9", "Grade 10"'
+                        value={form.name}
+                        onChange={(value) => {
+                            setForm((prev: any) => ({ ...prev, name: value }));
+                            setErrors((prev) => ({ ...prev, name: "" }));
+                        }}
+                        error={errors.name}
+                        autoComplete="off"
+                    />
+                </FormField>
             )}
 
             {type === "subject" && (
                 <>
-                    <div style={{ marginBottom: "14px" }}>
-                        <Label required>Class</Label>
-                        <select
-                            value={form.class_id}
-                            onChange={(e) => {
-                                setForm((prev: any) => ({ ...prev, class_id: e.target.value }));
+                    <FormField label="Class" required error={errors.class_id}>
+                        <Select
+                            value={String(form.class_id ?? "")}
+                            onChange={(value) => {
+                                setForm((prev: any) => ({ ...prev, class_id: value }));
                                 setErrors((prev) => ({ ...prev, class_id: "" }));
                             }}
-                            style={{
-                                width: "100%",
-                                height: "52px",
-                                padding: "0 16px",
-                                border: `1.5px solid ${errors.class_id ? "var(--error)" : "var(--ink-300)"}`,
-                                borderRadius: "var(--radius-md)",
-                                fontSize: "15px",
-                                fontFamily: "var(--font-body)",
-                                color: form.class_id ? "var(--ink-900)" : "var(--ink-500)",
-                                background: "var(--surface-0)",
-                                outline: "none",
-                            }}
-                        >
-                            <option value="">Select class</option>
-                            {classes?.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
-                        <ErrorMsg msg={errors.class_id} />
-                    </div>
+                            placeholder="Select class"
+                            error={errors.class_id}
+                            options={(classes ?? []).map((c) => ({
+                                value: String(c.id),
+                                label: c.name,
+                            }))}
+                        />
+                    </FormField>
 
-                    <div style={{ marginBottom: "20px" }}>
-                        <Label required>Subject Name</Label>
+                    <FormField label="Subject Name" required error={errors.name}>
                         <Input
                             placeholder="e.g., Mathematics, Science"
                             value={form.name}
@@ -339,15 +270,13 @@ function ItemSheet({
                             error={errors.name}
                             autoComplete="off"
                         />
-                        <ErrorMsg msg={errors.name} />
-                    </div>
+                    </FormField>
                 </>
             )}
 
             {type === "test" && (
                 <>
-                    <div style={{ marginBottom: "14px" }}>
-                        <Label required>Test Name</Label>
+                    <FormField label="Test Name" required error={errors.title}>
                         <Input
                             placeholder="e.g., Half Yearly, Math Mid Term"
                             value={form.title}
@@ -357,11 +286,9 @@ function ItemSheet({
                             }}
                             error={errors.title}
                         />
-                        <ErrorMsg msg={errors.title} />
-                    </div>
+                    </FormField>
 
-                    <div style={{ marginBottom: "14px" }}>
-                        <Label required>Test Number</Label>
+                    <FormField label="Test Number" required error={errors.test_number}>
                         <Input
                             type="number"
                             placeholder="1, 2, 3..."
@@ -372,84 +299,53 @@ function ItemSheet({
                             }}
                             error={errors.test_number}
                         />
-                        <ErrorMsg msg={errors.test_number} />
-                    </div>
+                    </FormField>
 
-                    <div style={{ marginBottom: "14px" }}>
-                        <Label required>Class</Label>
-                        <select
-                            value={form.class_id}
-                            onChange={(e) => {
-                                const classId = Number(e.target.value);
-                                setForm((prev: any) => ({ ...prev, class_id: e.target.value, subject_id: "" }));
+                    <FormField label="Class" required error={errors.class_id}>
+                        <Select
+                            value={String(form.class_id ?? "")}
+                            onChange={(value) => {
+                                setForm((prev: any) => ({ ...prev, class_id: value, subject_id: "" }));
                                 setErrors((prev) => ({ ...prev, class_id: "", subject_id: "" }));
-                                onClassChange?.(classId);
+                                onClassChange?.(Number(value));
                             }}
-                            style={{
-                                width: "100%",
-                                height: "52px",
-                                padding: "0 16px",
-                                border: `1.5px solid ${errors.class_id ? "var(--error)" : "var(--ink-300)"}`,
-                                borderRadius: "var(--radius-md)",
-                                fontSize: "15px",
-                                fontFamily: "var(--font-body)",
-                                color: form.class_id ? "var(--ink-900)" : "var(--ink-500)",
-                                background: "var(--surface-0)",
-                                outline: "none",
-                            }}
-                        >
-                            <option value="">Select class</option>
-                            {classes?.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
-                        <ErrorMsg msg={errors.class_id} />
-                    </div>
+                            placeholder="Select class"
+                            error={errors.class_id}
+                            options={(classes ?? []).map((c) => ({
+                                value: String(c.id),
+                                label: c.name,
+                            }))}
+                        />
+                    </FormField>
 
-                    <div style={{ marginBottom: "14px" }}>
-                        <Label required>Subject</Label>
-                        <select
-                            value={form.subject_id}
-                            onChange={(e) => {
-                                setForm((prev: any) => ({ ...prev, subject_id: e.target.value }));
+                    <FormField
+                        label="Subject"
+                        required
+                        error={errors.subject_id}
+                        hint={
+                            form.class_id && !subjects?.length
+                                ? "No subjects for this class. Add one under the Subjects tab first."
+                                : undefined
+                        }
+                    >
+                        <Select
+                            value={String(form.subject_id ?? "")}
+                            onChange={(value) => {
+                                setForm((prev: any) => ({ ...prev, subject_id: value }));
                                 setErrors((prev) => ({ ...prev, subject_id: "" }));
                             }}
+                            placeholder="Select subject"
+                            error={errors.subject_id}
                             disabled={!form.class_id}
-                            style={{
-                                width: "100%",
-                                height: "52px",
-                                padding: "0 16px",
-                                border: `1.5px solid ${errors.subject_id ? "var(--error)" : "var(--ink-300)"}`,
-                                borderRadius: "var(--radius-md)",
-                                fontSize: "15px",
-                                fontFamily: "var(--font-body)",
-                                color: form.subject_id ? "var(--ink-900)" : "var(--ink-500)",
-                                background: "var(--surface-0)",
-                                outline: "none",
-                            }}
-                        >
-                            <option value="">Select subject</option>
-                            {subjects?.map((subject) => (
-                                <option key={subject.id} value={subject.id}>
-                                    {subject.name}
-                                </option>
-                            ))}
-                        </select>
-                        <ErrorMsg msg={errors.subject_id} />
-                        {form.class_id && !subjects?.length && (
-                            <p style={{ fontSize: "12px", color: "var(--ink-500)", marginTop: 8 }}>
-                                No subjects found for this class. Add a subject first under the Subjects tab.
-                            </p>
-                        )}
-                    </div>
+                            options={(subjects ?? []).map((subject) => ({
+                                value: String(subject.id),
+                                label: subject.name,
+                            }))}
+                        />
+                    </FormField>
 
-                    <div style={{ marginBottom: "14px" }}>
-                        <Label required>Scheduled Date</Label>
-                        <Input
-                            type="date"
-                            placeholder=""
+                    <FormField label="Scheduled Date" required error={errors.scheduled_date}>
+                        <DateInput
                             value={form.scheduled_date}
                             onChange={(value) => {
                                 setForm((prev: any) => ({ ...prev, scheduled_date: value }));
@@ -457,11 +353,9 @@ function ItemSheet({
                             }}
                             error={errors.scheduled_date}
                         />
-                        <ErrorMsg msg={errors.scheduled_date} />
-                    </div>
+                    </FormField>
 
-                    <div style={{ marginBottom: "20px" }}>
-                        <Label required>Total Marks</Label>
+                    <FormField label="Total Marks" required error={errors.max_marks}>
                         <Input
                             type="number"
                             placeholder="100"
@@ -472,8 +366,7 @@ function ItemSheet({
                             }}
                             error={errors.max_marks}
                         />
-                        <ErrorMsg msg={errors.max_marks} />
-                    </div>
+                    </FormField>
                 </>
             )}
 
@@ -500,16 +393,28 @@ function ItemSheet({
 }
 
 // ─── Main Settings Page ────────────────────────────────────────────────────────
-export default function SettingsPage() {
+function SettingsPageContent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<TabType>("classes");
     const [classes, setClasses] = useState<Class[]>([]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [subjectClassId, setSubjectClassId] = useState<number | null>(null);
     const [tests, setTests] = useState<Test[]>([]);
+    const [testsPage, setTestsPage] = useState(1);
+    const [testsTotalPages, setTestsTotalPages] = useState(1);
+    const [testsTotal, setTestsTotal] = useState(0);
     const [loading, setLoading] = useState(true);
     const [showSheet, setShowSheet] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
+
+    useEffect(() => {
+        const tab = searchParams.get("tab");
+        if (tab && TAB_QUERY_VALUES.includes(tab as TabType)) {
+            setActiveTab(tab as TabType);
+        }
+    }, [searchParams]);
 
     // Fetch classes
     const fetchClasses = async () => {
@@ -532,38 +437,77 @@ export default function SettingsPage() {
         }
     };
 
-    // Fetch tests
-    const fetchTests = async () => {
+    // Fetch tests (paginated)
+    const fetchTests = async (page = 1) => {
         try {
-            const data = await testService.list();
-            setTests(data);
+            const data = await testService.list(page, DEFAULT_PAGE_SIZE);
+            setTests(data.items);
+            setTestsTotalPages(data.total_pages);
+            setTestsTotal(data.total);
         } catch (error) {
             console.error("Failed to fetch tests");
         }
     };
 
     useEffect(() => {
-        const fetch = async () => {
+        let cancelled = false;
+
+        (async () => {
+            if (activeTab === "team") {
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
-            await Promise.all([fetchClasses(), fetchTests()]);
-            setLoading(false);
+            try {
+                if (activeTab === "classes") {
+                    await fetchClasses();
+                    return;
+                }
+
+                let classList = classes;
+                if (!classList.length) {
+                    const data = await classService.list();
+                    if (cancelled) return;
+                    setClasses(data);
+                    classList = data;
+                }
+
+                if (activeTab === "subjects") {
+                    if (classList.length) {
+                        const classId = subjectClassId ?? classList[0].id;
+                        setSubjectClassId(classId);
+                        await fetchSubjects(classId);
+                    }
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
         };
-        fetch();
-    }, []);
+    }, [activeTab]);
 
     useEffect(() => {
-        if (!classes.length) return;
+        if (activeTab !== "tests") return;
 
-        if (activeTab === "subjects") {
-            const classId = subjectClassId ?? classes[0].id;
-            setSubjectClassId(classId);
-            fetchSubjects(classId);
-        }
+        let cancelled = false;
+        setLoading(true);
 
-        if (activeTab === "tests" && classes.length === 1) {
-            fetchSubjects(classes[0].id);
-        }
-    }, [activeTab, classes]);
+        (async () => {
+            try {
+                await fetchTests(testsPage);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [activeTab, testsPage]);
 
     const handleAdd = () => {
         setEditingItem(null);
@@ -597,6 +541,7 @@ export default function SettingsPage() {
 
     const handleDeleteTest = (id: number) => {
         setTests((prev) => prev.filter((t) => t.id !== id));
+        setTestsTotal((prev) => Math.max(0, prev - 1));
         showToast("Test deleted successfully", "success");
     };
 
@@ -606,149 +551,89 @@ export default function SettingsPage() {
         } else if (activeTab === "subjects" && subjectClassId) {
             fetchSubjects(subjectClassId);
         } else if (activeTab === "tests") {
-            fetchTests();
+            if (tests.length === 1 && testsPage > 1) {
+                setTestsPage((prev) => prev - 1);
+            } else {
+                fetchTests(testsPage);
+            }
         }
     };
 
-    const tabs: { id: TabType; label: string; icon: string }[] = [
-        { id: "classes", label: "Classes", icon: "📚" },
-        { id: "subjects", label: "Subjects", icon: "🧩" },
-        { id: "tests", label: "Tests", icon: "📝" },
+    const handleTabChange = (tab: TabType) => {
+        setActiveTab(tab);
+        if (tab === "tests") {
+            setTestsPage(1);
+        }
+    };
+
+    const tabs: { id: TabType; label: string }[] = [
+        { id: "classes", label: "Classes" },
+        { id: "subjects", label: "Subjects" },
+        { id: "tests", label: "Tests" },
+        { id: "team" as TabType, label: "Team" },
     ];
 
     return (
         <>
-            <style>{`
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.4; }
-            }
-        `}</style>
-
             <TopBar title="Settings" />
-            <div style={{ width: "100%", boxSizing: "border-box", padding: "0 16px 24px" }}>
-                {/* Add button */}
-                <button
-                    onClick={handleAdd}
-                    style={{
-                        position: "fixed",
-                        top: 12,
-                        right: 16,
-                        zIndex: 100,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        height: 36,
-                        padding: "0 14px",
-                        background: "var(--brand-primary)",
-                        border: "none",
-                        borderRadius: "var(--radius-md)",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        color: "white",
-                        cursor: "pointer",
-                        fontFamily: "var(--font-display)",
-                    }}
-                >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path
-                            d="M12 5v14M5 12h14"
-                            stroke="white"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                        />
-                    </svg>
-                    Add
-                </button>
-
-                {/* Tabs */}
-                <div
-                    style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: 8,
-                        marginBottom: 24,
-                        borderBottom: "1px solid rgba(0,0,0,0.06)",
-                    }}
-                >
+            <PageContent>
+                <div className="vt-settings-tabs">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            style={{
-                                flex: "1 1 100px",
-                                minWidth: 100,
-                                padding: "12px 16px",
-                                border: "none",
-                                background: "none",
-                                cursor: "pointer",
-                                borderBottom: activeTab === tab.id ? "2px solid var(--brand-primary)" : "2px solid transparent",
-                                color: activeTab === tab.id ? "var(--brand-primary)" : "var(--ink-500)",
-                                fontFamily: "var(--font-display)",
-                                fontSize: "14px",
-                                fontWeight: activeTab === tab.id ? 600 : 400,
-                                transition: "all 0.2s",
-                            }}
+                            type="button"
+                            onClick={() => handleTabChange(tab.id)}
+                            className={`vt-settings-tab${activeTab === tab.id ? " is-active" : ""}`}
                         >
-                            {tab.icon} {tab.label}
+                            <SettingsTabIcon tab={tab.id} active={activeTab === tab.id} />
+                            {tab.label}
                         </button>
                     ))}
                 </div>
 
                 {/* Section Header */}
                 <div style={{ marginBottom: 24 }}>
-                    <h3
-                        style={{
-                            fontFamily: "var(--font-display)",
-                            fontSize: "18px",
-                            fontWeight: 700,
-                            color: "var(--ink-900)",
-                            marginBottom: 6,
-                        }}
-                    >
+                    <h3 className="vt-greeting-title" style={{ fontSize: "18px", marginBottom: 6 }}>
                         {activeTab === "classes"
                             ? "Classes"
                             : activeTab === "subjects"
                                 ? "Subjects"
+                                : activeTab === "team"
+                                    ? "Team"
                                 : "Tests"}
                     </h3>
-                    <p style={{ fontSize: "14px", color: "var(--ink-600)", lineHeight: 1.5 }}>
+                    <p className="vt-section-subtitle" style={{ marginBottom: 0 }}>
                         {activeTab === "classes"
                             ? "Manage all classes in your institute."
                             : activeTab === "subjects"
                                 ? "Organize subjects by class so tests map to the right curriculum."
-                                : "Schedule and manage tests for your students."}
+                                : activeTab === "team"
+                                    ? "Add teacher accounts with their own login. Each teacher can work independently."
+                                : "Create tests, enter scores, and manage your exam schedule."}
                     </p>
                 </div>
 
                 {/* Loading state */}
-                {loading && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        {[1, 2, 3].map((i) => (
-                            <div
-                                key={i}
-                                style={{
-                                    height: 70,
-                                    borderRadius: "var(--radius-lg)",
-                                    background: "var(--ink-100)",
-                                    animation: "pulse 1.5s ease-in-out infinite",
-                                }}
-                            />
-                        ))}
-                    </div>
+                {loading && <ListSkeleton count={4} />}
+
+                {/* Team Tab */}
+                {activeTab === "team" && (
+                    <TeamTab onShowToast={(message, type) => showToast(message, type ?? "success")} />
                 )}
 
                 {/* Classes Tab */}
                 {!loading && activeTab === "classes" && (
                     <>
-                        {classes.length === 0 && <EmptyState type="classes" onAdd={handleAdd} />}
+                        <div className="vt-tab-toolbar">
+                            <p className="vt-tab-count">
+                                {classes.length} class{classes.length !== 1 ? "es" : ""}
+                            </p>
+                            <TabAddButton label="Add class" onClick={handleAdd} />
+                        </div>
+                        {classes.length === 0 && <EmptyState type="classes" />}
 
                         {classes.length > 0 && (
-                            <>
-                                <p style={{ fontSize: "12px", color: "var(--ink-400)", marginBottom: 12 }}>
-                                    {classes.length} class{classes.length !== 1 ? "es" : ""}
-                                </p>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                                     {classes.map((classItem) => (
                                         <ItemCard
                                             key={classItem.id}
@@ -763,8 +648,7 @@ export default function SettingsPage() {
                                             }}
                                         />
                                     ))}
-                                </div>
-                            </>
+                            </div>
                         )}
                     </>
                 )}
@@ -772,43 +656,36 @@ export default function SettingsPage() {
                 {/* Subjects Tab */}
                 {!loading && activeTab === "subjects" && (
                     <>
-                        {subjects.length === 0 && <EmptyState type="subjects" onAdd={handleAdd} />}
+                        <div className="vt-tab-toolbar">
+                            <p className="vt-tab-count">
+                                {subjects.length} subject{subjects.length !== 1 ? "s" : ""}
+                            </p>
+                            <TabAddButton label="Add subject" onClick={handleAdd} />
+                        </div>
+                        {subjects.length === 0 && <EmptyState type="subjects" />}
 
                         {subjects.length > 0 && (
                             <>
                                 <div style={{ marginBottom: 18, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                                    <span style={{ fontSize: "12px", color: "var(--ink-400)" }}>
+                                    <span style={{ fontSize: "12px", color: "var(--ink-400)", flexShrink: 0 }}>
                                         Filter subjects by class
                                     </span>
-                                    <select
-                                        value={subjectClassId ?? ""}
-                                        onChange={(e) => {
-                                            const classId = Number(e.target.value);
-                                            setSubjectClassId(classId);
-                                            fetchSubjects(classId);
-                                        }}
-                                        style={{
-                                            flex: "1 1 140px",
-                                            minWidth: 140,
-                                            maxWidth: 260,
-                                            height: 42,
-                                            padding: "0 14px",
-                                            borderRadius: "var(--radius-md)",
-                                            border: "1.5px solid var(--ink-300)",
-                                            background: "var(--surface-0)",
-                                            fontSize: "14px",
-                                        }}
-                                    >
-                                        {classes.map((c) => (
-                                            <option key={c.id} value={c.id}>
-                                                {c.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="vt-inline-select">
+                                        <Select
+                                            value={String(subjectClassId ?? "")}
+                                            onChange={(value) => {
+                                                const classId = Number(value);
+                                                setSubjectClassId(classId);
+                                                fetchSubjects(classId);
+                                            }}
+                                            placeholder="Select class"
+                                            options={classes.map((c) => ({
+                                                value: String(c.id),
+                                                label: c.name,
+                                            }))}
+                                        />
+                                    </div>
                                 </div>
-                                <p style={{ fontSize: "12px", color: "var(--ink-400)", marginBottom: 12 }}>
-                                    {subjects.length} subject{subjects.length !== 1 ? "s" : ""} loaded for the selected class.
-                                </p>
                                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                                     {subjects.map((subject) => (
                                         <ItemCard
@@ -833,30 +710,38 @@ export default function SettingsPage() {
                 {/* Tests Tab */}
                 {!loading && activeTab === "tests" && (
                     <>
-                        {tests.length === 0 && <EmptyState type="tests" onAdd={handleAdd} />}
+                        <div className="vt-tab-toolbar">
+                            <p className="vt-tab-count">
+                                {testsTotal} test{testsTotal !== 1 ? "s" : ""}
+                            </p>
+                            <TabAddButton label="Add test" onClick={handleAdd} />
+                        </div>
+                        {tests.length === 0 && <EmptyState type="tests" />}
 
                         {tests.length > 0 && (
                             <>
-                                <p style={{ fontSize: "12px", color: "var(--ink-400)", marginBottom: 12 }}>
-                                    {tests.length} test{tests.length !== 1 ? "s" : ""}
-                                </p>
                                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                                     {tests.map((test) => (
-                                        <ItemCard
+                                        <TestListItem
                                             key={test.id}
-                                            icon="📝"
-                                            title={test.name}
-                                            subtitle={`${test.class_name} • ${test.subject}`}
-                                            description={`Total Marks: ${test.total_marks} • ${new Date(test.scheduled_date).toLocaleDateString("en-IN")}`}
+                                            test={test}
                                             onEdit={() => handleEdit(test)}
                                             onDelete={async (onSuccess) => {
                                                 await testService.delete(test.id);
                                                 handleDeleteTest(test.id);
                                                 onSuccess();
                                             }}
+                                            onEnterScores={() => router.push(`/dashboard/tests/${test.id}/scores`)}
                                         />
                                     ))}
                                 </div>
+                                <Pagination
+                                    page={testsPage}
+                                    totalPages={testsTotalPages}
+                                    total={testsTotal}
+                                    onPageChange={setTestsPage}
+                                    loading={loading}
+                                />
                             </>
                         )}
                     </>
@@ -880,7 +765,16 @@ export default function SettingsPage() {
                     }}
                     onShowToast={(message) => showToast(message, "success")}
                 />
-            </div>
+
+            </PageContent>
         </>
+    );
+}
+
+export default function SettingsPage() {
+    return (
+        <Suspense fallback={<ListSkeleton count={4} />}>
+            <SettingsPageContent />
+        </Suspense>
     );
 }

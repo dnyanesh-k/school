@@ -1,12 +1,18 @@
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import relationship
+
 from app.db.session import Base
 
 
 class Test(Base):
     __tablename__ = "tests"
+    __table_args__ = (
+        Index("ix_tests_institute_date", "institute_id", "scheduled_date"),
+        Index("ix_tests_institute_deleted", "institute_id", "is_deleted"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
+    institute_id = Column(Integer, ForeignKey("institutes.id"), nullable=False, index=True)
     title = Column(String, nullable=False)
     test_number = Column(Integer, nullable=False)
     subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=False)
@@ -20,6 +26,8 @@ class Test(Base):
 
     subject = relationship("Subject")
     class_ = relationship("Class")
+    institute = relationship("Institute")
+    scores = relationship("TestScore", back_populates="test", cascade="save-update, merge")
 
     @property
     def subject_name(self):

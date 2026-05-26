@@ -1,5 +1,8 @@
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
+import { buildWaMeUrl } from "@/lib/whatsapp";
+import type { PaginatedResult } from "@/lib/pagination";
+import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
 export interface Test {
   id: number;
@@ -13,14 +16,16 @@ export interface Test {
   total_marks: number;
   scheduled_date: string;
   is_published: boolean;
+  scores_entered?: number;
 }
 
 export interface TestScore {
   student_id: number;
   student_name: string;
   parent_phone: string;
+  roll_number?: string;
   marks_obtained: number | null;
-  remarks: string;
+  remarks: string | null;
 }
 
 export interface CreateTestPayload {
@@ -34,9 +39,26 @@ export interface CreateTestPayload {
 
 export const testService = {
 
-  async list() {
-    const response = await api.get(API_URLS.TESTS.LIST);
-    return response.data as Test[];
+  async list(page = 1, pageSize = DEFAULT_PAGE_SIZE) {
+    const response = await api.get(API_URLS.TESTS.LIST, {
+      params: { page, page_size: pageSize },
+    });
+    return response.data as PaginatedResult<Test>;
+  },
+
+  async listAll() {
+    const all: Test[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const result = await this.list(page, 50);
+      all.push(...result.items);
+      totalPages = result.total_pages;
+      page += 1;
+    } while (page <= totalPages);
+
+    return all;
   },
 
   async create(payload: CreateTestPayload) {
@@ -47,6 +69,11 @@ export const testService = {
   async update(testId: number, payload: CreateTestPayload) {
     const response = await api.put(`${API_URLS.TESTS.LIST}/${testId}`, payload);
     return response.data;
+  },
+
+  async getById(testId: number) {
+    const response = await api.get(`${API_URLS.TESTS.LIST}/${testId}`);
+    return response.data as Test;
   },
 
   async getScores(testId: number) {
@@ -66,6 +93,6 @@ export const testService = {
 
   buildWhatsAppUrl(phone: string, studentName: string, testTitle: string, marks: number, maxMarks: number): string {
     const msg = `Dear Parent, ${studentName} scored ${marks}/${maxMarks} in ${testTitle}. For details contact the institute.`;
-    return `https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`;
+    return buildWaMeUrl(phone, msg);
   },
 };

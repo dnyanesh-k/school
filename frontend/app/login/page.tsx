@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { authService } from "@/services/authService";
+import { authService, getErrorMessage } from "@/services/authService";
 import { Input }      from "@/components/ui/Input";
 import { Label }      from "@/components/ui/Label";
 import { ErrorMsg }   from "@/components/ui/ErrorMsg";
@@ -41,10 +41,9 @@ export default function LoginPage() {
     setApiError("");
     try {
       const response = await authService.login({ email: form.email, password: form.password });
-     localStorage.setItem("token", response.access_token);
-      router.push("/dashboard/students");
+      router.push(authService.getHomeRoute());
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : "Login failed. Please try again.");
+      setApiError(getErrorMessage(err, "Login failed. Please try again."));
     } finally {
       setLoading(false);
     }

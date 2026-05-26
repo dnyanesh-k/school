@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { authService } from "@/services/authService";
+import { authService, getErrorMessage } from "@/services/authService";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Label } from "@/components/ui/Label";
@@ -155,16 +155,15 @@ export default function RegisterPage() {
     setLoading(true);
     setApiError("");
     try {
-      const response = await authService.register({
+      await authService.register({
         name: form.name, email: form.email, phone: form.phone,
         address: form.address, city: form.city,
         institute_type: form.institute_type,
         admin_name: form.admin_name, password: form.password,
       });
-      localStorage.setItem("token", response.access_token);
-      router.push("/setup");
+      router.push("/register/pending");
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+      setApiError(getErrorMessage(err, "Registration failed. Please try again."));
     } finally {
       setLoading(false);
     }
