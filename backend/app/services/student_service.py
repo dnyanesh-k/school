@@ -2,32 +2,33 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.student import StudentCreate, StudentUpdate
 from app.repositories.student_repository import StudentRepository
-from app.models.student import Student  
+from app.repositories.class_repository import ClassRepository
+from app.models.student import Student
+
 
 class StudentService:
     def __init__(self, db: AsyncSession):
         self.repo = StudentRepository(db)
+        self.class_repo = ClassRepository(db)
 
     async def create(self, payload: StudentCreate):
-        #  Check if student already exists (Business Logic)
-        existing = await self.repo.get_by_email(payload.email)
-        if existing:
+        # Validate class association exists
+        class_obj = await self.class_repo.get_by_id(payload.class_id)
+        if not class_obj:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Student with this email already exists"
+                detail="Class not found"
             )
 
-        # autogenerate roll number    
+        # autogenerate roll number
         count = await self.repo.get_count()
-        new_roll_number = f"STU-{(count + 1)}"
+        new_roll_number = f"STU-{count + 1}"
 
-        #  Convert Pydantic DTO to SQLAlchemy Model
-        # **payload.model_dump() turns the DTO into keyword arguments for the Model
+        # Convert Pydantic DTO to SQLAlchemy Model
         student_data = payload.model_dump()
         student_data["roll_number"] = new_roll_number
         student_db_obj = Student(**student_data)
-        
-        # Pass the Model (not the DTO) to the repository
+
         return await self.repo.create(student_db_obj)
 
     async def get_all(self):
@@ -37,7 +38,7 @@ class StudentService:
         if not query:
             return await self.get_all()
         # Logic: prepare the search string
-        search_term = f"%{query.strip()}%"    
+        search_term = f"%{query.strip()}%"
         return await self.repo.search_students(search_term)
 
     async def update_student(self, roll_number: str, payload: StudentUpdate):
@@ -45,12 +46,13 @@ class StudentService:
         student = await self.repo.get_by_roll_number(roll_number)
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
-    
+
         # 2. Update only the fields provided in the payload
-        update_data = payload.model_dump(exclude_unset=True) # exclude_unset is key!
-        
+        update_data = payload.model_dump(
+            exclude_unset=True)  # exclude_unset is key!
+
         for key, value in update_data.items():
             setattr(student, key, value)
-    
+
         # 3. Save changes
-        return await self.repo.update(student)    
+        return await self.repo.update(student)

@@ -9,7 +9,9 @@ from app.services.student_service import StudentService
 router = APIRouter(prefix="/students", tags=["students"])
 
 # Create a student
-@router.post("/", response_model=StudentOut, status_code=status.HTTP_201_CREATED)
+
+
+@router.post("", response_model=StudentOut, status_code=status.HTTP_201_CREATED)
 async def create_student(
     payload: StudentCreate,
     db: AsyncSession = Depends(get_db)
@@ -18,7 +20,9 @@ async def create_student(
     return await service.create(payload)
 
 # Get list of students
-@router.get("/", response_model=List[StudentOut], status_code=status.HTTP_200_OK)
+
+
+@router.get("", response_model=List[StudentOut], status_code=status.HTTP_200_OK)
 async def get_students(
     db: AsyncSession = Depends(get_db)
 ):
@@ -26,13 +30,16 @@ async def get_students(
     return await service.get_all()
 
 # Search the student
+
+
 @router.get("/search", response_model=list[StudentOut])
 async def search_students(
-    q: str = "", 
+    q: str = "",
     db: AsyncSession = Depends(get_db)
 ):
     service = StudentService(db)
     return await service.search(q)
+
 
 @router.patch("/{roll_number}", response_model=StudentOut)
 async def update_student(
@@ -42,5 +49,3 @@ async def update_student(
 ):
     service = StudentService(db)
     return await service.update_student(roll_number, payload)
-    
-    

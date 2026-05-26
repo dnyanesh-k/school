@@ -41,8 +41,8 @@ export default function LoginPage() {
     setApiError("");
     try {
       const response = await authService.login({ email: form.email, password: form.password });
-      authService.saveToken(response.access_token);
-      router.push("/login");
+     localStorage.setItem("token", response.access_token);
+      router.push("/dashboard/students");
     } catch (err: unknown) {
       setApiError(err instanceof Error ? err.message : "Login failed. Please try again.");
     } finally {

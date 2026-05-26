@@ -141,3 +141,63 @@ input:-webkit-autofill {
 .animate-slideIn {
   animation: slideIn 0.25s ease forwards;
 }
+
+/* ── App Layout ────────────────────────────────────────────────────────────── */
+.vt-sidebar   { display: none; }
+.vt-bottomtab { display: block; }
+.vt-main {
+  padding: 16px 16px 80px 16px;
+  min-height: 100dvh;
+  background: var(--surface-1);
+  font-family: var(--font-body);
+}
+
+@media (min-width: 768px) {
+  .vt-sidebar   { display: block; }
+  .vt-bottomtab { display: none; }
+  .vt-main {
+    margin-left: 220px;
+    padding: 24px 32px;
+  }
+}
+
+
+/* ── TopBar ─────────────────────────────────────────────────────────────────── */
+.vt-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: var(--surface-0);
+  border-bottom: 1px solid var(--ink-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 99;
+}
+
+/* Logout only shows on mobile */
+.vt-topbar-logout { display: flex; }
+
+@media (min-width: 768px) {
+  .vt-topbar {
+    left: 220px; /* sits next to sidebar */
+    padding: 0 32px;
+  }
+  /* Hide logout on desktop — sidebar has it */
+  .vt-topbar-logout { display: none; }
+}
+
+.vt-main {
+  padding: 72px 16px 80px 16px; /* 72px top = 56px topbar + 16px gap */
+  min-height: 100dvh;
+  background: var(--surface-1);
+  font-family: var(--font-body);
+}
+
+@media (min-width: 768px) {
+  .vt-main {
+    margin-left: 220px;
+    padding: 72px 32px 32px;
+  }
+}

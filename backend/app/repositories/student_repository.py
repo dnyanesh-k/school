@@ -1,7 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 from app.models.student import Student
-from sqlalchemy import or_ 
+from sqlalchemy import or_
+
 
 class StudentRepository:
     def __init__(self, db: AsyncSession):
@@ -11,24 +13,24 @@ class StudentRepository:
         self.db.add(student)
         await self.db.commit()
         await self.db.refresh(student)
+        await self.db.refresh(student, attribute_names=["class_"])
         return student
 
     async def list_all(self) -> list[Student]:
-        result = await self.db.execute(select(Student))
+        result = await self.db.execute(select(Student).options(selectinload(Student.class_)))
         return result.scalars().all()
 
-    async def get_by_email(self, email: str) -> Student | None:
+    async def get_by_id(self, student_id: int) -> Student | None:
         result = await self.db.execute(
-            select(Student).where(Student.email == email)
+            select(Student).options(selectinload(Student.class_)).where(
+                Student.id == student_id)
         )
         return result.scalars().first()
 
-    async def get_by_id(self, student_id: int) -> Student | None:
-        return await self.db.get(Student, student_id)
-
     async def get_by_roll_number(self, roll_number: str) -> Student | None:
         result = await self.db.execute(
-            select(Student).where(Student.roll_number == roll_number)
+            select(Student).options(selectinload(Student.class_)).where(
+                Student.roll_number == roll_number)
         )
         return result.scalars().first()
 
@@ -38,7 +40,7 @@ class StudentRepository:
         return result.scalar() or 0
 
     async def search_students(self, search_term: str) -> list[Student]:
-        stmt = select(Student).where(
+        stmt = select(Student).options(selectinload(Student.class_)).where(
             or_(
                 Student.roll_number.ilike(search_term),
                 Student.full_name.ilike(search_term)
@@ -50,6 +52,5 @@ class StudentRepository:
     async def update(self, student: Student) -> Student:
         await self.db.commit()
         await self.db.refresh(student)
+        await self.db.refresh(student, attribute_names=["class_"])
         return student
-    
-
