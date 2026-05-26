@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { ErrorMsg } from "@/components/ui/ErrorMsg";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/hooks/useToast";
 import { studentService, type Student, type CreateStudentPayload } from "@/services/studentService";
 import { feeService } from "@/services/feeService";
 import api from "@/lib/axios";
@@ -131,10 +132,11 @@ function StudentCard({ student, onViewFees }: { student: Student; onViewFees: (s
 
 // ─── Add Student Sheet ────────────────────────────────────────────────────────
 function AddStudentSheet({
-  open, onClose, classes, onSuccess,
+  open, onClose, classes, onSuccess, onShowToast,
 }: {
   open: boolean; onClose: () => void;
   classes: Class[]; onSuccess: () => void;
+  onShowToast?: (message: string) => void;
 }) {
   const empty = { full_name: "", admission_date: "", class_id: "", parent_name: "", parent_phone: "", address: "" };
   const [form, setForm] = useState(empty);
@@ -173,6 +175,7 @@ function AddStudentSheet({
         address: form.address,
       } as CreateStudentPayload);
       setForm(empty);
+      onShowToast?.("Student added successfully");
       onSuccess();
       onClose();
     } catch {
@@ -454,6 +457,7 @@ function FeeSheet({ student, onClose }: { student: Student | null; onClose: () =
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function StudentsPage() {
+  const { showToast } = useToast();
   const [classes, setClasses] = useState<Class[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
@@ -595,6 +599,7 @@ export default function StudentsPage() {
         onClose={() => setShowAdd(false)}
         classes={classes}
         onSuccess={fetchStudents}
+        onShowToast={(message) => showToast(message, "success")}
       />
 
       {/* ── Fee sheet ── */}

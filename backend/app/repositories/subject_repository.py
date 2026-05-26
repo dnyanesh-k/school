@@ -15,23 +15,39 @@ class SubjectRepository:
         return subject
 
     async def list_by_class(self, class_id: int) -> list[Subject]:
-        result = await self.db.execute(select(Subject).where(Subject.class_id == class_id))
+        result = await self.db.execute(
+            select(Subject).where(
+                Subject.class_id == class_id,
+                Subject.is_deleted == False
+            )
+        )
         return result.scalars().all()
 
     async def get_by_id(self, subject_id: int) -> Subject | None:
-        return await self.db.get(Subject, subject_id)
+        result = await self.db.execute(
+            select(Subject).where(
+                Subject.id == subject_id,
+                Subject.is_deleted == False
+            )
+        )
+        return result.scalars().first()
 
     async def get_by_name_and_class(self, name: str, class_id: int) -> Subject | None:
         result = await self.db.execute(
-            select(Subject).where(Subject.name == name, Subject.class_id == class_id)
+            select(Subject).where(
+                Subject.name == name,
+                Subject.class_id == class_id,
+                Subject.is_deleted == False
+            )
         )
         return result.scalars().first()
+
+    async def delete(self, subject: Subject) -> None:
+        subject.is_deleted = True
+        await self.db.commit()
+        await self.db.refresh(subject)
 
     async def update(self, subject: Subject) -> Subject:
         await self.db.commit()
         await self.db.refresh(subject)
         return subject
-
-    async def delete(self, subject: Subject) -> None:
-        await self.db.delete(subject)
-        await self.db.commit()

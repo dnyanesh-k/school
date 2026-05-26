@@ -17,26 +17,34 @@ class StudentRepository:
         return student
 
     async def list_all(self) -> list[Student]:
-        result = await self.db.execute(select(Student).options(selectinload(Student.class_)))
+        result = await self.db.execute(
+            select(Student)
+            .options(selectinload(Student.class_))
+            .where(Student.is_deleted == False)
+        )
         return result.scalars().all()
 
     async def get_by_id(self, student_id: int) -> Student | None:
         result = await self.db.execute(
-            select(Student).options(selectinload(Student.class_)).where(
-                Student.id == student_id)
+            select(Student)
+            .options(selectinload(Student.class_))
+            .where(Student.id == student_id, Student.is_deleted == False)
         )
         return result.scalars().first()
 
     async def get_by_roll_number(self, roll_number: str) -> Student | None:
         result = await self.db.execute(
-            select(Student).options(selectinload(Student.class_)).where(
-                Student.roll_number == roll_number)
+            select(Student)
+            .options(selectinload(Student.class_))
+            .where(Student.roll_number == roll_number, Student.is_deleted == False)
         )
         return result.scalars().first()
 
     async def get_count(self) -> int:
-        # Efficiently counts total records in the students table
-        result = await self.db.execute(select(func.count(Student.id)))
+        # Efficiently counts total active records in the students table
+        result = await self.db.execute(
+            select(func.count(Student.id)).where(Student.is_deleted == False)
+        )
         return result.scalar() or 0
 
     async def search_students(self, search_term: str) -> list[Student]:
@@ -44,10 +52,16 @@ class StudentRepository:
             or_(
                 Student.roll_number.ilike(search_term),
                 Student.full_name.ilike(search_term)
-            )
+            ),
+            Student.is_deleted == False
         )
         result = await self.db.execute(stmt)
         return result.scalars().all()
+
+    async def delete(self, student: Student) -> None:
+        student.is_deleted = True
+        await self.db.commit()
+        await self.db.refresh(student)
 
     async def update(self, student: Student) -> Student:
         await self.db.commit()

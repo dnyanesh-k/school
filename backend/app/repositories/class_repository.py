@@ -15,19 +15,26 @@ class ClassRepository:
         return class_obj
 
     async def list_all(self) -> list[Class]:
-        result = await self.db.execute(select(Class))
+        result = await self.db.execute(select(Class).where(Class.is_deleted == False))
         return result.scalars().all()
 
     async def get_by_id(self, class_id: int) -> Class | None:
-        return await self.db.get(Class, class_id)
+        result = await self.db.execute(
+            select(Class).where(Class.id == class_id,
+                                Class.is_deleted == False)
+        )
+        return result.scalars().first()
 
     async def get_by_name(self, name: str) -> Class | None:
-        result = await self.db.execute(select(Class).where(Class.name == name))
+        result = await self.db.execute(
+            select(Class).where(Class.name == name, Class.is_deleted == False)
+        )
         return result.scalars().first()
 
     async def delete(self, class_obj: Class) -> None:
-        await self.db.delete(class_obj)
+        class_obj.is_deleted = True
         await self.db.commit()
+        await self.db.refresh(class_obj)
 
     async def update(self, class_obj: Class) -> Class:
         await self.db.commit()

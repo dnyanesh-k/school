@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 
 from app.db.session import Base
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -23,3 +24,4 @@ class User(Base):
     institute = relationship("Institute", back_populates="users")
 
     is_active = Column(Boolean, default=True)
+    is_deleted = Column(Boolean, default=False, nullable=False)

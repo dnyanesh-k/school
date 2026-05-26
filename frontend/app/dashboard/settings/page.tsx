@@ -8,6 +8,7 @@ import { ErrorMsg } from "@/components/ui/ErrorMsg";
 import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/common/BottomSheet";
 import { ItemCard } from "@/components/common/ItemCard";
+import { useToast } from "@/hooks/useToast";
 import { classService } from "@/services/classService";
 import { testService, type Test, type CreateTestPayload } from "@/services/testService";
 import { subjectService, type Subject } from "@/services/subjectService";
@@ -125,6 +126,7 @@ function ItemSheet({
     classes,
     subjects,
     onClassChange,
+    onShowToast,
 }: {
     open: boolean;
     onClose: () => void;
@@ -134,6 +136,7 @@ function ItemSheet({
     classes?: Class[];
     subjects?: Subject[];
     onClassChange?: (classId: number) => void;
+    onShowToast?: (message: string) => void;
 }) {
     const [form, setForm] = useState<any>({});
     const [errors, setErrors] = useState<FieldError>({});
@@ -194,16 +197,20 @@ function ItemSheet({
             if (type === "class") {
                 if (editing) {
                     await classService.update(editing.id, { name: form.name.trim() });
+                    onShowToast?.("Class updated successfully");
                 } else {
                     await classService.create({ name: form.name.trim() });
+                    onShowToast?.("Class added successfully");
                 }
             } else if (type === "subject") {
                 const payload = { name: form.name.trim() };
 
                 if (editing) {
                     await subjectService.update(editing.id, payload);
+                    onShowToast?.("Subject updated successfully");
                 } else {
                     await subjectService.create(Number(form.class_id), payload);
+                    onShowToast?.("Subject added successfully");
                 }
             } else if (type === "test") {
                 const payload: CreateTestPayload = {
@@ -217,8 +224,10 @@ function ItemSheet({
 
                 if (editing) {
                     await testService.update(editing.id, payload);
+                    onShowToast?.("Test updated successfully");
                 } else {
                     await testService.create(payload);
+                    onShowToast?.("Test added successfully");
                 }
             }
 
@@ -492,6 +501,7 @@ function ItemSheet({
 
 // ─── Main Settings Page ────────────────────────────────────────────────────────
 export default function SettingsPage() {
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<TabType>("classes");
     const [classes, setClasses] = useState<Class[]>([]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -577,14 +587,17 @@ export default function SettingsPage() {
 
     const handleDeleteClass = (id: number) => {
         setClasses((prev) => prev.filter((c) => c.id !== id));
+        showToast("Class deleted successfully", "success");
     };
 
     const handleDeleteSubject = (id: number) => {
         setSubjects((prev) => prev.filter((subject) => subject.id !== id));
+        showToast("Subject deleted successfully", "success");
     };
 
     const handleDeleteTest = (id: number) => {
         setTests((prev) => prev.filter((t) => t.id !== id));
+        showToast("Test deleted successfully", "success");
     };
 
     const handleSuccess = () => {
@@ -865,6 +878,7 @@ export default function SettingsPage() {
                         setSubjectClassId(classId);
                         fetchSubjects(classId);
                     }}
+                    onShowToast={(message) => showToast(message, "success")}
                 />
             </div>
         </>

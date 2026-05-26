@@ -49,3 +49,12 @@ async def update_student(
 ):
     service = StudentService(db)
     return await service.update_student(roll_number, payload)
+
+
+@router.delete("/{roll_number}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_student(
+    roll_number: str,
+    db: AsyncSession = Depends(get_db)
+):
+    service = StudentService(db)
+    await service.delete_student(roll_number)

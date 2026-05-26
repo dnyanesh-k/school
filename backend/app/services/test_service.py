@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.test_repository import TestRepository
 from app.schemas.test import TestCreate, TestOut
 from app.models.test import Test
+from app.core.exceptions import NotFoundError
 
 
 class TestService:
@@ -37,11 +38,7 @@ class TestService:
         return [TestOut(**self._serialize(t)) for t in tests]
 
     async def delete(self, test_id: int):
-        from fastapi import HTTPException, status
-
         test = await self.repo.get_by_id(test_id)
         if not test:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Test not found")
+            raise NotFoundError("Test")
         await self.repo.delete(test)
-        return None

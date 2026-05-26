@@ -1,9 +1,9 @@
-from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.student import StudentCreate, StudentUpdate
 from app.repositories.student_repository import StudentRepository
 from app.repositories.class_repository import ClassRepository
 from app.models.student import Student
+from app.core.exceptions import NotFoundError, ValidationError
 
 
 class StudentService:
@@ -15,10 +15,7 @@ class StudentService:
         # Validate class association exists
         class_obj = await self.class_repo.get_by_id(payload.class_id)
         if not class_obj:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Class not found"
-            )
+            raise NotFoundError("Class")
 
         # autogenerate roll number
         count = await self.repo.get_count()
@@ -45,7 +42,7 @@ class StudentService:
         # 1. Find the student
         student = await self.repo.get_by_roll_number(roll_number)
         if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
+            raise NotFoundError("Student")
 
         # 2. Update only the fields provided in the payload
         update_data = payload.model_dump(
@@ -56,3 +53,9 @@ class StudentService:
 
         # 3. Save changes
         return await self.repo.update(student)
+
+    async def delete_student(self, roll_number: str) -> None:
+        student = await self.repo.get_by_roll_number(roll_number)
+        if not student:
+            raise NotFoundError("Student")
+        await self.repo.delete(student)

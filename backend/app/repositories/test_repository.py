@@ -17,16 +17,22 @@ class TestRepository:
         return test_obj
 
     async def list_all(self) -> list[Test]:
-        result = await self.db.execute(select(Test).options(selectinload(Test.subject), selectinload(Test.class_)))
+        result = await self.db.execute(
+            select(Test)
+            .options(selectinload(Test.subject), selectinload(Test.class_))
+            .where(Test.is_deleted == False)
+        )
         return result.scalars().all()
 
     async def get_by_id(self, test_id: int) -> Test | None:
         result = await self.db.execute(
-            select(Test).options(selectinload(Test.subject),
-                                 selectinload(Test.class_)).where(Test.id == test_id)
+            select(Test)
+            .options(selectinload(Test.subject), selectinload(Test.class_))
+            .where(Test.id == test_id, Test.is_deleted == False)
         )
         return result.scalars().first()
 
     async def delete(self, test_obj: Test) -> None:
-        await self.db.delete(test_obj)
+        test_obj.is_deleted = True
         await self.db.commit()
+        await self.db.refresh(test_obj)

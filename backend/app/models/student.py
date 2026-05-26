@@ -15,6 +15,7 @@ class Student(Base):
     parent_phone = Column(String, nullable=False)
     address = Column(String, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
+    is_deleted = Column(Boolean, default=False, nullable=False)
 
     class_ = relationship("Class", back_populates="students")
 
