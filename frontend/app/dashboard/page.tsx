@@ -61,7 +61,7 @@ export default function DashboardHomePage() {
 
   const attentionCount =
     summary
-      ? (summary.fee_defaulters_count > 0 ? 1 : 0) +
+      ? (summary.can_view_fees && (summary.fee_defaulters_count ?? 0) > 0 ? 1 : 0) +
         (summary.absent_today_count > 0 ? 1 : 0) +
         (summary.tests_pending_scores > 0 ? 1 : 0)
       : 0;
@@ -92,15 +92,28 @@ export default function DashboardHomePage() {
             <StatGrid>
               <StatCard label="Total students" value={String(summary.total_students)} tone="brand" />
               <StatCard label="Today's attendance" value={`${summary.attendance_today_pct}%`} tone="success" />
-              <StatCard label="Collected this month" value={formatInr(summary.fees_collected_this_month)} tone="neutral" />
-              <StatCard label="Fees pending" value={formatInr(summary.fees_pending)} tone="warning" />
+              {summary.can_view_fees ? (
+                <>
+                  <StatCard label="Collected this month" value={formatInr(summary.fees_collected_this_month ?? 0)} tone="neutral" />
+                  <StatCard label="Fees pending" value={formatInr(summary.fees_pending ?? 0)} tone="warning" />
+                </>
+              ) : (
+                <>
+                  <StatCard label="Tests this week" value={String(summary.tests_this_week)} tone="neutral" />
+                  <StatCard
+                    label="Scores pending"
+                    value={String(summary.tests_pending_scores)}
+                    tone={summary.tests_pending_scores > 0 ? "warning" : "neutral"}
+                  />
+                </>
+              )}
             </StatGrid>
 
             {attentionCount > 0 && (
               <>
                 <p className="vt-section-title">Needs attention</p>
                 <div className="vt-stack" style={{ marginBottom: 16 }}>
-                  {summary.fee_defaulters_count > 0 && (
+                  {summary.can_view_fees && (summary.fee_defaulters_count ?? 0) > 0 && (
                     <AlertCard
                       title={`${summary.fee_defaulters_count} fee defaulter${summary.fee_defaulters_count === 1 ? "" : "s"}`}
                       description="Follow up on overdue installments"
@@ -126,10 +139,13 @@ export default function DashboardHomePage() {
             )}
 
             <p className="vt-meta-line">
-              <span className="vt-chip">{summary.collection_rate_pct}% collected</span>
+              {summary.can_view_fees && summary.collection_rate_pct != null && (
+                <span className="vt-chip">{summary.collection_rate_pct}% collected</span>
+              )}
               {summary.tests_this_week > 0 && (
-                <span style={{ marginLeft: 8 }}>
-                  · {summary.tests_this_week} test{summary.tests_this_week === 1 ? "" : "s"} this week
+                <span style={{ marginLeft: summary.can_view_fees && summary.collection_rate_pct != null ? 8 : 0 }}>
+                  {summary.can_view_fees && summary.collection_rate_pct != null ? "· " : ""}
+                  {summary.tests_this_week} test{summary.tests_this_week === 1 ? "" : "s"} this week
                 </span>
               )}
             </p>
@@ -147,11 +163,13 @@ export default function DashboardHomePage() {
                 description="Manage tests and enter marks"
                 onClick={() => router.push("/dashboard/settings?tab=tests")}
               />
-              <QuickLinkCard
-                label="Fee defaulters"
-                description="Follow up on pending installments"
-                onClick={() => router.push("/dashboard/fees")}
-              />
+              {summary.can_view_fees && (
+                <QuickLinkCard
+                  label="Fee defaulters"
+                  description="Follow up on pending installments"
+                  onClick={() => router.push("/dashboard/fees")}
+                />
+              )}
               <QuickLinkCard
                 label="Students"
                 description="Browse and manage student records"

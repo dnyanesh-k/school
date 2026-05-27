@@ -52,8 +52,14 @@ class StudentService:
         q = query.strip() or None
         return await self.get_all(institute_id, page=page, page_size=page_size, q=q)
 
-    async def update_student(self, roll_number: str, payload: StudentUpdate, institute_id: int):
-        student = await self.repo.get_by_roll_number(roll_number, institute_id)
+    async def get_by_id(self, student_id: int, institute_id: int):
+        student = await self.repo.get_by_id(student_id, institute_id)
+        if not student:
+            raise NotFoundError("Student")
+        return student
+
+    async def update_student(self, student_id: int, payload: StudentUpdate, institute_id: int):
+        student = await self.repo.get_by_id(student_id, institute_id)
         if not student:
             raise NotFoundError("Student")
 
@@ -69,8 +75,8 @@ class StudentService:
 
         return await self.repo.update(student)
 
-    async def delete_student(self, roll_number: str, institute_id: int) -> None:
-        student = await self.repo.get_by_roll_number(roll_number, institute_id)
+    async def delete_student(self, student_id: int, institute_id: int) -> None:
+        student = await self.repo.get_by_id(student_id, institute_id)
         if not student:
             raise NotFoundError("Student")
         await self.repo.delete(student)

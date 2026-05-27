@@ -130,6 +130,10 @@ export const authService = {
     return authService.getRole() === "teacher";
   },
 
+  canViewFees(): boolean {
+    return authService.isInstituteAdmin();
+  },
+
   getHomeRoute(): string {
     return authService.isPlatformAdmin() ? "/admin" : "/dashboard";
   },

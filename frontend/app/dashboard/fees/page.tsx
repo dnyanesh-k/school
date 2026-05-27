@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { TabAddButton } from "@/components/layout/TabAddButton";
 import { PageContent } from "@/components/layout/PageContent";
@@ -22,6 +23,7 @@ import {
 } from "@/services/feeService";
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
+import { authService } from "@/services/authService";
 
 interface ClassOption {
   id: number;
@@ -310,6 +312,7 @@ function DefaulterRow({ defaulter }: { defaulter: Defaulter }) {
 }
 
 export default function FeesPage() {
+  const router = useRouter();
   const { showToast } = useToast();
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
@@ -330,6 +333,12 @@ export default function FeesPage() {
   const [detailStudent, setDetailStudent] = useState<{ id: number; name: string } | null>(null);
   const [addPlanStudentId, setAddPlanStudentId] = useState<number | null>(null);
   const [showAddPlan, setShowAddPlan] = useState(false);
+
+  useEffect(() => {
+    if (!authService.canViewFees()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   useEffect(() => {
     api

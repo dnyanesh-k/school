@@ -2,8 +2,9 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useInstitute } from "@/contexts/InstituteContext";
+import { authService } from "@/services/authService";
 import { LogoutButton } from "./LogoutButton";
-import { NAV_ITEMS } from "./navItems";
+import { getNavItems } from "./navItems";
 
 function isActive(href: string, pathname: string) {
   if (href === "/dashboard") {
@@ -16,6 +17,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { instituteName, loading } = useInstitute();
+  const navItems = getNavItems(authService.getRole());
 
   return (
     <aside className="vt-sidebar-shell">
@@ -27,7 +29,7 @@ export function Sidebar() {
       </div>
 
       <nav className="vt-sidebar-nav">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active = isActive(item.href, pathname);
           return (
             <button

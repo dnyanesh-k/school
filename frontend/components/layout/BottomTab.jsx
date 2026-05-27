@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { NAV_ITEMS } from "./navItems";
+import { authService } from "@/services/authService";
+import { getNavItems } from "./navItems";
 
 function isActive(href, pathname) {
   if (href === "/dashboard") {
@@ -13,10 +14,11 @@ function isActive(href, pathname) {
 export function BottomTab() {
   const pathname = usePathname();
   const router = useRouter();
+  const navItems = getNavItems(authService.getRole());
 
   return (
     <nav className="vt-bottomtab-bar">
-      {NAV_ITEMS.map((tab) => {
+      {navItems.map((tab) => {
         const active = isActive(tab.href, pathname);
         return (
           <button

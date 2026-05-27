@@ -61,10 +61,14 @@ export function FeeDetailSheet({
   const [feePlan, setFeePlan] = useState<FeePlan | null>(null);
   const [loading, setLoading] = useState(false);
   const [payingId, setPayingId] = useState<number | null>(null);
+  const [payTarget, setPayTarget] = useState<Installment | null>(null);
+  const [payAmount, setPayAmount] = useState("");
+  const [payError, setPayError] = useState("");
 
   useEffect(() => {
     if (!open || !studentId) {
       setFeePlan(null);
+      setPayTarget(null);
       return;
     }
 
@@ -76,18 +80,50 @@ export function FeeDetailSheet({
       .finally(() => setLoading(false));
   }, [open, studentId]);
 
-  const payInstallment = async (installmentId: number) => {
-    setPayingId(installmentId);
+  const openPayForm = (installment: Installment) => {
+    setPayTarget(installment);
+    setPayAmount(String(installment.amount));
+    setPayError("");
+  };
+
+  const closePayForm = () => {
+    if (payingId) return;
+    setPayTarget(null);
+    setPayAmount("");
+    setPayError("");
+  };
+
+  const confirmPayment = async () => {
+    if (!payTarget) return;
+
+    const amount = Number(payAmount);
+    if (!payAmount.trim() || Number.isNaN(amount) || amount <= 0) {
+      setPayError("Enter a valid amount received");
+      return;
+    }
+
+    setPayingId(payTarget.id);
+    setPayError("");
     try {
-      const updated = await feeService.payInstallment(installmentId);
+      const updated = await feeService.payInstallment(payTarget.id, amount);
       setFeePlan(updated);
-      onShowToast("Installment marked as paid", "success");
+      setPayTarget(null);
+      setPayAmount("");
+      onShowToast("Payment recorded", "success");
       onUpdated();
     } catch (error) {
-      onShowToast(getErrorMessage(error, "Failed to mark installment as paid"), "error");
+      setPayError(getErrorMessage(error, "Failed to record payment"));
     } finally {
       setPayingId(null);
     }
+  };
+
+  const formatPaidLine = (inst: Installment) => {
+    const received = inst.paid_amount ?? inst.amount;
+    if (received !== inst.amount) {
+      return `Received ${formatInr(received)} (due ${formatInr(inst.amount)})`;
+    }
+    return `Received ${formatInr(received)}`;
   };
 
   if (!open || !studentId) return null;
@@ -152,56 +188,109 @@ export function FeeDetailSheet({
             {feePlan.installments.map((inst, index) => {
               const canPay = inst.status !== "paid";
               const isOverdue = inst.status === "overdue";
+              const isPayOpen = payTarget?.id === inst.id;
 
               return (
                 <div
                   key={inst.id}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 10,
                     padding: "12px 14px",
                     background: isOverdue ? "var(--error-bg)" : "var(--surface-0)",
                     border: `1px solid ${isOverdue ? "var(--error-border)" : "var(--ink-200)"}`,
                     borderRadius: "var(--radius-md)",
                   }}
                 >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink-900)", marginBottom: 2 }}>
-                      Installment {index + 1} · {formatInr(inst.amount)}
-                    </p>
-                    <p style={{ fontSize: "12px", color: "var(--ink-500)" }}>
-                      Due {formatDate(inst.due_date)}
-                      {inst.paid_date ? ` · Paid ${formatDate(inst.paid_date)}` : ""}
-                    </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink-900)", marginBottom: 2 }}>
+                        Installment {index + 1} · {formatInr(inst.amount)}
+                      </p>
+                      <p style={{ fontSize: "12px", color: "var(--ink-500)" }}>
+                        Due {formatDate(inst.due_date)}
+                        {inst.paid_date
+                          ? ` · ${formatPaidLine(inst)} on ${formatDate(inst.paid_date)}`
+                          : ""}
+                      </p>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      <StatusBadge status={inst.status} />
+                      {canPay && !isPayOpen && (
+                        <button
+                          type="button"
+                          disabled={!!payTarget && payTarget.id !== inst.id}
+                          onClick={() => openPayForm(inst)}
+                          style={{
+                            minHeight: 36,
+                            padding: "0 12px",
+                            borderRadius: "var(--radius-sm)",
+                            border: "1px solid var(--brand-200)",
+                            background: "var(--brand-accent)",
+                            color: "var(--brand-primary)",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            cursor: payTarget ? "not-allowed" : "pointer",
+                            opacity: payTarget && payTarget.id !== inst.id ? 0.5 : 1,
+                            fontFamily: "var(--font-body)",
+                          }}
+                        >
+                          Mark paid
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                    <StatusBadge status={inst.status} />
-                    {canPay && (
-                      <button
-                        type="button"
-                        disabled={payingId === inst.id}
-                        onClick={() => payInstallment(inst.id)}
-                        style={{
-                          minHeight: 36,
-                          padding: "0 12px",
-                          borderRadius: "var(--radius-sm)",
-                          border: "1px solid var(--brand-200)",
-                          background: "var(--brand-accent)",
-                          color: "var(--brand-primary)",
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          cursor: payingId === inst.id ? "not-allowed" : "pointer",
-                          opacity: payingId === inst.id ? 0.6 : 1,
-                          fontFamily: "var(--font-body)",
-                        }}
+                  {isPayOpen && (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        paddingTop: 12,
+                        borderTop: "1px solid var(--ink-200)",
+                      }}
+                    >
+                      <FormField
+                        label="Amount received (₹)"
+                        required
+                        error={payError}
+                        hint={`Installment due is ${formatInr(inst.amount)}. Enter what the parent actually paid.`}
                       >
-                        {payingId === inst.id ? "..." : "Mark paid"}
-                      </button>
-                    )}
-                  </div>
+                        <Input
+                          type="number"
+                          placeholder={String(inst.amount)}
+                          value={payAmount}
+                          onChange={setPayAmount}
+                          error={payError}
+                        />
+                      </FormField>
+
+                      <div className="vt-sheet-actions" style={{ marginTop: 4 }}>
+                        <Button
+                          variant="secondary"
+                          onClick={closePayForm}
+                          disabled={payingId === inst.id}
+                          fullWidth
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={confirmPayment}
+                          loading={payingId === inst.id}
+                          disabled={payingId === inst.id}
+                          fullWidth
+                        >
+                          Confirm payment
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

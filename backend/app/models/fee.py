@@ -32,6 +32,7 @@ class Installment(Base):
     amount = Column(Integer, nullable=False)
     due_date = Column(Date, nullable=False, index=True)
     paid_date = Column(Date, nullable=True)
+    paid_amount = Column(Integer, nullable=True)
     status = Column(String, default="pending", nullable=False)  # pending | paid
     is_deleted = Column(Boolean, default=False, nullable=False)
 

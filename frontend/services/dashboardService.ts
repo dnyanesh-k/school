@@ -5,11 +5,12 @@ export interface DashboardSummary {
   total_students: number;
   attendance_today_pct: number;
   absent_today_count: number;
-  fees_collected: number;
-  fees_collected_this_month: number;
-  fees_pending: number;
-  collection_rate_pct: number;
-  fee_defaulters_count: number;
+  can_view_fees: boolean;
+  fees_collected: number | null;
+  fees_collected_this_month: number | null;
+  fees_pending: number | null;
+  collection_rate_pct: number | null;
+  fee_defaulters_count: number | null;
   tests_this_week: number;
   tests_pending_scores: number;
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import type { UserRole } from "@/services/authService";
+
 function navStroke(active: boolean) {
   return active ? "var(--nav-icon-active)" : "var(--nav-icon)";
 }
@@ -59,4 +61,11 @@ const NAV_ITEMS = [
   },
 ];
 
-export { NAV_ITEMS, navStroke };
+function getNavItems(role: UserRole | null) {
+  if (role === "teacher") {
+    return NAV_ITEMS.filter((item) => item.href !== "/dashboard/fees");
+  }
+  return NAV_ITEMS;
+}
+
+export { NAV_ITEMS, getNavItems, navStroke };

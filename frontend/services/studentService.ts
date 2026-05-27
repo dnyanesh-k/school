@@ -5,6 +5,7 @@ import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
 export interface Student {
   id: number;
+  roll_number: string;
   full_name: string;
   admission_date: string;
   class_id: number;
@@ -22,6 +23,15 @@ export interface CreateStudentPayload {
   parent_name: string;
   parent_phone: string;
   address: string;
+}
+
+export function getErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (error as { response?: { data?: { message?: string; detail?: string } } }).response;
+    if (response?.data?.message) return response.data.message;
+    if (response?.data?.detail) return response.data.detail;
+  }
+  return fallback;
 }
 
 export const studentService = {

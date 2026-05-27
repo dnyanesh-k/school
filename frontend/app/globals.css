@@ -794,6 +794,130 @@ input:-webkit-autofill {
   gap: 12px;
 }
 
+.vt-student-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+}
+
+.vt-student-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--brand-primary);
+}
+
+.vt-student-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.vt-student-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink-900);
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vt-student-meta {
+  font-size: 12px;
+  color: var(--ink-500);
+  margin-bottom: 2px;
+}
+
+.vt-student-meta:last-child {
+  margin-bottom: 0;
+}
+
+.vt-student-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.vt-student-fees-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-accent);
+  border: 1px solid var(--brand-200);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-primary);
+  cursor: pointer;
+  font-family: var(--font-body);
+  white-space: nowrap;
+}
+
+.vt-student-menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  color: var(--ink-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+
+.vt-student-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  overflow: hidden;
+  z-index: 101;
+  min-width: 160px;
+  box-shadow: var(--shadow-card);
+}
+
+.vt-student-menu-item {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  color: var(--ink-700);
+  font-family: var(--font-body);
+  border-bottom: 1px solid var(--ink-100);
+}
+
+.vt-student-menu-item:last-child {
+  border-bottom: none;
+}
+
+.vt-student-menu-item.is-danger {
+  color: var(--error);
+}
+
+.vt-student-menu-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .vt-item-icon {
   width: 44px;
   height: 44px;

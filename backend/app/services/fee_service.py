@@ -37,11 +37,15 @@ class FeeService:
         return "pending"
 
     def _to_installment_out(self, installment: Installment) -> InstallmentOut:
+        paid_amount = installment.paid_amount
+        if paid_amount is None and (installment.status == "paid" or installment.paid_date):
+            paid_amount = installment.amount
         return InstallmentOut(
             id=installment.id,
             amount=installment.amount,
             due_date=installment.due_date,
             paid_date=installment.paid_date,
+            paid_amount=paid_amount,
             status=self.resolve_installment_status(installment),
         )
 
@@ -100,7 +104,12 @@ class FeeService:
 
         return self._to_plan_out(fee_plan)
 
-    async def pay_installment(self, installment_id: int, institute_id: int) -> PayInstallmentResponse:
+    async def pay_installment(
+        self,
+        installment_id: int,
+        institute_id: int,
+        amount: int,
+    ) -> PayInstallmentResponse:
         installment = await self.repo.get_installment_by_id(installment_id, institute_id)
         if not installment:
             raise NotFoundError("Installment")
@@ -108,16 +117,20 @@ class FeeService:
         if installment.status == "paid" or installment.paid_date:
             raise ConflictError("Installment is already paid")
 
+        if amount <= 0:
+            raise ValidationError("Payment amount must be greater than zero")
+
         fee_plan = installment.fee_plan
         today = date.today()
 
         installment.status = "paid"
         installment.paid_date = today
-        fee_plan.paid_amount += installment.amount
+        installment.paid_amount = amount
+        fee_plan.paid_amount += amount
 
         updated = await self.repo.save_plan(fee_plan, institute_id)
         return PayInstallmentResponse(
-            message="Installment marked as paid",
+            message="Payment recorded",
             data=self._to_plan_out(updated),
         )
 

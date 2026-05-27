@@ -27,6 +27,7 @@ class InstallmentOut(BaseModel):
     amount: int
     due_date: date
     paid_date: Optional[date] = None
+    paid_amount: Optional[int] = None
     status: Literal["pending", "paid", "overdue"]
 
     model_config = {"from_attributes": True}
@@ -44,6 +45,10 @@ class FeePlanCreateResponse(BaseModel):
     success: bool = True
     message: str
     data: FeePlanOut
+
+
+class PayInstallmentRequest(BaseModel):
+    amount: int = Field(gt=0, description="Actual amount received from the parent")
 
 
 class PayInstallmentResponse(BaseModel):

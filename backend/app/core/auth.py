@@ -12,7 +12,10 @@ Platform admin only (require_platform_admin):
   GET/PATCH /admin/*
 
 Institute staff (require_institute_user — institute_admin + teacher):
-  /students, /classes, /subjects, /tests, /fees, /attendance, …
+  /students, /classes, /subjects, /tests, /attendance, …
+
+Institute admin only (require_institute_admin):
+  /fees, /installments
 
 Request flow:
   Authorization: Bearer <jwt>
@@ -131,6 +134,14 @@ async def require_institute_user(
         raise ForbiddenError("Your institute account is suspended")
 
     current_user.institute = institute
+    return current_user
+
+
+async def require_institute_admin(
+    current_user: User = Depends(require_institute_user),
+) -> User:
+    if current_user.role != Role.INSTITUTE_ADMIN.value:
+        raise ForbiddenError("You do not have permission to perform this action")
     return current_user
 
 

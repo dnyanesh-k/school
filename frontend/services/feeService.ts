@@ -9,6 +9,7 @@ export interface Installment {
   amount: number;
   due_date: string;
   paid_date: string | null;
+  paid_amount?: number | null;
   status: "pending" | "paid" | "overdue";
 }
 
@@ -117,8 +118,8 @@ export const feeService = {
     return response.data as FeePlan;
   },
 
-  async payInstallment(installmentId: number): Promise<FeePlan> {
-    const response = await api.put(API_URLS.FEES.PAY_INSTALLMENT(installmentId));
+  async payInstallment(installmentId: number, amount: number): Promise<FeePlan> {
+    const response = await api.put(API_URLS.FEES.PAY_INSTALLMENT(installmentId), { amount });
     return response.data.data as FeePlan;
   },
 

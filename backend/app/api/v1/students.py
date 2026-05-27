@@ -52,22 +52,32 @@ async def search_students(
     return await service.search(institute_id_of(current_user), q, page=page, page_size=page_size)
 
 
-@router.patch("/{roll_number}", response_model=StudentOut)
+@router.get("/{student_id}", response_model=StudentOut, status_code=status.HTTP_200_OK)
+async def get_student(
+    student_id: int,
+    current_user: User = Depends(require_institute_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = StudentService(db)
+    return await service.get_by_id(student_id, institute_id_of(current_user))
+
+
+@router.patch("/{student_id}", response_model=StudentOut)
 async def update_student(
-    roll_number: str,
+    student_id: int,
     payload: StudentUpdate,
     current_user: User = Depends(require_institute_user),
     db: AsyncSession = Depends(get_db),
 ):
     service = StudentService(db)
-    return await service.update_student(roll_number, payload, institute_id_of(current_user))
+    return await service.update_student(student_id, payload, institute_id_of(current_user))
 
 
-@router.delete("/{roll_number}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_student(
-    roll_number: str,
+    student_id: int,
     current_user: User = Depends(require_institute_user),
     db: AsyncSession = Depends(get_db),
 ):
     service = StudentService(db)
-    await service.delete_student(roll_number, institute_id_of(current_user))
+    await service.delete_student(student_id, institute_id_of(current_user))

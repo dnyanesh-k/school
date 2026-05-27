@@ -78,7 +78,7 @@ function AddTeacherSheet({
       }
     >
       <p style={{ fontSize: "14px", color: "var(--ink-500)", lineHeight: 1.5, marginBottom: 16 }}>
-        Each teacher gets their own login with the same access as the institute admin, including settings.
+        Teachers can manage students, attendance, tests, and settings. Fee management stays with the institute admin.
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
