@@ -59,7 +59,7 @@ class DashboardService:
             )
 
             month_collected_result = await self.db.execute(
-                select(func.coalesce(func.sum(Installment.amount), 0))
+                select(func.coalesce(func.sum(Installment.paid_amount), 0))
                 .join(FeePlan, Installment.fee_plan_id == FeePlan.id)
                 .join(Student, FeePlan.student_id == Student.id)
                 .where(
