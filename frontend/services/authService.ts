@@ -112,11 +112,19 @@ export const authService = {
     return payload?.institute_id ?? null;
   },
 
-  getRole(): UserRole | null {
-    if (DEV_BYPASS_AUTH) return "institute_admin";
-    const payload = decodeToken();
-    return (payload?.role as UserRole) ?? null;
-  },
+getRole(): UserRole | null {
+  // 1. Always check for dev bypass first
+  if (DEV_BYPASS_AUTH) return "institute_admin";
+  
+  // 2. Add the guard block for the static build server
+  if (typeof window === "undefined") {
+    return null; 
+  }
+  
+  // 3. Safe to call decodeToken now that we are in the browser
+  const payload = decodeToken();
+  return (payload?.role as UserRole) ?? null;
+},
 
   isPlatformAdmin(): boolean {
     return authService.getRole() === "platform_admin";
