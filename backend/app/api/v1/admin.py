@@ -12,10 +12,10 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.get("/institutes", response_model=PaginatedResponse[InstituteOut])
 async def list_institutes(
+    _: PlatformAdmin,
     status: str | None = Query(None, description="Filter by institute status"),
     page: int = Query(DEFAULT_PAGE, ge=1),
     page_size: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=50),
-    _: PlatformAdmin,
     db: AsyncSession = Depends(get_db),
 ):
     service = AdminService(db)

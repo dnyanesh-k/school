@@ -9,7 +9,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.db.session import Base, engine
-from app.models import (  # noqa: F401 — register models with SQLAlchemy metadata
+from app.models import (
     Admission,
     Attendance,
     AttendanceSubmission,
@@ -28,9 +28,15 @@ from app.models import (  # noqa: F401 — register models with SQLAlchemy metad
 
 async def init_db() -> None:
     async with engine.begin() as conn:
+        # DROP ALL TABLES
+        await conn.run_sync(Base.metadata.drop_all)
+
+        # CREATE ALL TABLES
         await conn.run_sync(Base.metadata.create_all)
+
     await engine.dispose()
-    print("Database tables created successfully.")
+
+    print("Database reset successfully.")
 
 
 if __name__ == "__main__":
