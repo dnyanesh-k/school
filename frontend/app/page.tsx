@@ -20,22 +20,58 @@ const ArrowRight = () => (
 );
 
 /* ── Mini visuals (show, don't tell) ─────────────────────────────────── */
+function attendanceColor(pct: number): { bar: string; label: string } {
+  if (pct < 75) return { bar: "#eb5757ff", label: "#e46262ff" };
+  if (pct < 90) return { bar: "#f59e0b", label: "#b45309" };
+  if (pct == 100) return { bar: "#55d370ba", label: "#5ae47cff" };
+  return { bar: "var(--brand-primary)", label: "var(--brand-primary)" };
+}
+
 function AttendanceVisual() {
   const days = ["M", "T", "W", "T", "F"];
-  const pct = [96, 91, 98, 88, 94];
+  const pct = [92, 80, 98, 72, 100];
+  const maxBarHeight = 64;
   return (
     <div style={CARD}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
         <span style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 700, color: "var(--ink-800)" }}>Attendance</span>
         <span style={{ fontSize: 10, color: "var(--ink-400)", background: "var(--ink-100)", padding: "2px 7px", borderRadius: 4 }}>9-B</span>
       </div>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 72, marginBottom: 6 }}>
-        {days.map((d, i) => (
-          <div key={`${d}-${i}`} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 9, fontWeight: 600, color: "var(--ink-500)" }}>{pct[i]}%</span>
-            <div style={{ width: "100%", borderRadius: "3px 3px 0 0", height: `${pct[i] * 0.65}%`, background: pct[i] >= 95 ? "var(--brand-primary)" : "var(--brand-400)" }} />
-          </div>
-        ))}
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+        {days.map((d, i) => {
+          const colors = attendanceColor(pct[i]);
+          const barHeight = Math.round((pct[i] / 100) * maxBarHeight);
+          return (
+            <div key={`${d}-${i}`} style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: colors.label, marginBottom: 6, height: 14 }}>
+                {pct[i]}%
+              </div>
+              <div
+                style={{
+                  height: maxBarHeight,
+                  display: "flex",
+                  alignItems: "flex-end",
+                  background: "var(--surface-1)",
+                  borderRadius: "var(--radius-sm)",
+                  padding: "0 3px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "100%",
+                    height: barHeight,
+                    borderRadius: "3px 3px 0 0",
+                    background: colors.bar,
+                  }}
+                />
+              </div>
+              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 600, color: "var(--ink-400)", marginTop: 6 }}>
+                {d}
+              </div>
+            </div>
+          );
+        })}
       </div>
       <div style={{ padding: "8px 10px", background: "var(--brand-50)", borderRadius: "var(--radius-sm)", fontSize: 11, color: "var(--brand-700)", display: "flex", alignItems: "center", gap: 6 }}>
         <span>💬</span> 2 absent — parents notified
