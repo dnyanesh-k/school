@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { BrandLink } from "@/components/layout/BrandLink";
 import { authService } from "@/services/authService";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -33,21 +34,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "var(--radius-sm)",
-              background: "var(--brand-primary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <path d="M12 2l7 4v6c0 5-3 9-7 10C8 21 5 17 5 12V6l7-4z" />
-            </svg>
-          </div>
+          <BrandLink icon="shield" size="md" showName={false} />
           <div>
             <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "15px", color: "var(--ink-900)" }}>
               VidyaTrack Admin

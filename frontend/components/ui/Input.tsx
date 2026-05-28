@@ -1,5 +1,6 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 export function Input({
@@ -22,6 +23,8 @@ export function Input({
   disabled?: boolean;
 }) {
   const [focused, setFocused] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const isPassword = type === "password";
 
   const className = [
     "vt-control",
@@ -31,11 +34,19 @@ export function Input({
     .filter(Boolean)
     .join(" ");
 
+  const wrapClassName = [
+    "vt-input-wrap",
+    prefix ? "has-prefix" : "",
+    isPassword ? "has-suffix" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={`vt-input-wrap${prefix ? " has-prefix" : ""}`}>
+    <div className={wrapClassName}>
       {prefix ? <span className="vt-input-prefix">{prefix}</span> : null}
       <input
-        type={type}
+        type={isPassword ? (passwordVisible ? "text" : "password") : type}
         placeholder={placeholder}
         value={value}
         autoComplete={autoComplete}
@@ -45,6 +56,18 @@ export function Input({
         onBlur={() => setFocused(false)}
         className={className}
       />
+      {isPassword ? (
+        <button
+          type="button"
+          className="vt-password-toggle"
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => setPasswordVisible((visible) => !visible)}
+          aria-label={passwordVisible ? "Hide password" : "Show password"}
+        >
+          {passwordVisible ? <EyeOff size={18} strokeWidth={1.75} /> : <Eye size={18} strokeWidth={1.75} />}
+        </button>
+      ) : null}
     </div>
   );
 }

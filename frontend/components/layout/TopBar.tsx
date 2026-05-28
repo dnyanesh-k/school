@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useInstitute } from "@/contexts/InstituteContext";
+import { BrandLink } from "./BrandLink";
 import { LogoutButton } from "./LogoutButton";
 
 interface TopBarProps {
@@ -13,6 +13,7 @@ export function TopBar({ title }: TopBarProps) {
 
   return (
     <header className="vt-topbar">
+      <BrandLink icon="chart" showName={false} className="vt-topbar-brand" />
       <div className="vt-topbar-left">
         {title ? (
           <>

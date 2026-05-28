@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
+import { MarketingNavbar } from "@/components/layout/MarketingNavbar";
 
 /* ── Icons ─────────────────────────────────────────────────────────── */
 const ArrowRight = () => (
@@ -20,57 +21,6 @@ const Play = () => (
     <path d="M5 4.8l4 1.7-4 1.7V4.8z" fill="currentColor" stroke="none" />
   </svg>
 );
-
-/* ── Navbar ─────────────────────────────────────────────────────────── */
-function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 12);
-    window.addEventListener("scroll", h);
-    return () => window.removeEventListener("scroll", h);
-  }, []);
-
-  return (
-    <nav style={{
-      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "0 20px", height: 56,
-      background: scrolled ? "rgba(255,255,255,0.94)" : "transparent",
-      backdropFilter: scrolled ? "blur(16px)" : "none",
-      WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-      borderBottom: scrolled ? "1px solid var(--ink-200)" : "1px solid transparent",
-      transition: "all 0.2s ease",
-    }}>
-      <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
-        <div style={{
-          width: 28, height: 28, borderRadius: 7,
-          background: "var(--brand-primary)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 12l3-7 3.5 4 2.5-4 2.5 7" />
-          </svg>
-        </div>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--ink-900)", letterSpacing: "-0.03em" }}>
-          VidyaTrack
-        </span>
-      </Link>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Link href="/login" style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-500)", textDecoration: "none", padding: "6px 12px" }}>
-          Sign in
-        </Link>
-        <Link href="/register" style={{
-          fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 600,
-          color: "white", background: "var(--brand-primary)",
-          textDecoration: "none", padding: "8px 16px",
-          borderRadius: "var(--radius-md)",
-        }}>
-          Get started
-        </Link>
-      </div>
-    </nav>
-  );
-}
 
 /* ── Hero ───────────────────────────────────────────────────────────── */
 function Hero() {
@@ -490,7 +440,7 @@ function Footer() {
 export default function LandingPage() {
   return (
     <>
-      <Navbar />
+      <MarketingNavbar />
       <Hero />
       <Features />
       <Testimonials />

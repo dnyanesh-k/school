@@ -237,6 +237,10 @@ input:-webkit-autofill {
   flex: 1;
 }
 
+.vt-topbar-brand {
+  margin-right: 4px;
+}
+
 .vt-topbar-institute {
   font-size: 12px;
   color: var(--text-muted);
@@ -1289,10 +1293,15 @@ input:-webkit-autofill {
 
 .vt-input-wrap {
   position: relative;
+  width: 100%;
 }
 
 .vt-input-wrap.has-prefix .vt-control {
   padding-left: 44px;
+}
+
+.vt-input-wrap.has-suffix .vt-control {
+  padding-right: 48px;
 }
 
 .vt-input-prefix {
@@ -1305,6 +1314,34 @@ input:-webkit-autofill {
   font-weight: 500;
   pointer-events: none;
   z-index: 1;
+}
+
+.vt-password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-400);
+  cursor: pointer;
+}
+
+.vt-password-toggle:hover:not(:disabled) {
+  color: var(--ink-600);
+  background: var(--ink-100);
+}
+
+.vt-password-toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .vt-select-wrap {
