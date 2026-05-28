@@ -89,7 +89,7 @@ export function NavAuthActions({
         Sign in
       </Link>
       <Link href="/register" style={primaryButtonStyle}>
-        Get started
+        Start trial
       </Link>
     </>
   );

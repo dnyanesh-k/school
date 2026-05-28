@@ -100,4 +100,4 @@ Never start Step N+1 until Step N works end to end on mobile. Your primary user 
 
 5. update home screen properly with features explained
 8. on home add we have voice agent and calling feature
-9. forgot pass functionality with email otp
+9. add terms of service, and other navs from footer

@@ -1,170 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactNode } from "react";
 import { MarketingNavbar } from "@/components/layout/MarketingNavbar";
+import { MarketingFooter } from "@/components/layout/MarketingFooter";
 
-/* ── Icons ─────────────────────────────────────────────────────────── */
+const BOX = { maxWidth: 520, margin: "0 auto", width: "100%" } as const;
+const CARD = {
+  background: "var(--surface-0)",
+  border: "1px solid var(--ink-200)",
+  borderRadius: "var(--radius-lg)",
+  padding: "16px",
+  boxShadow: "var(--shadow-sm)",
+} as const;
+
 const ArrowRight = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M2.5 7h9M7.5 3.5L11 7l-3.5 3.5" />
   </svg>
 );
-const Check = () => (
-  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 6.5l3 3 6-5.5" />
-  </svg>
-);
-const Play = () => (
-  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-    <circle cx="6.5" cy="6.5" r="5" />
-    <path d="M5 4.8l4 1.7-4 1.7V4.8z" fill="currentColor" stroke="none" />
-  </svg>
-);
 
-/* ── Hero ───────────────────────────────────────────────────────────── */
-function Hero() {
-  return (
-    <section style={{
-      minHeight: "100svh",
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      padding: "80px 24px 60px",
-      background: "var(--surface-0)",
-      textAlign: "center",
-      position: "relative", overflow: "hidden",
-    }}>
-      <div style={{
-        position: "absolute", inset: 0, pointerEvents: "none",
-        backgroundImage: "radial-gradient(circle, var(--ink-200) 1px, transparent 1px)",
-        backgroundSize: "28px 28px",
-        maskImage: "radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 100%)",
-        WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 100%)",
-        opacity: 0.5,
-      }} />
-      <div style={{
-        position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)",
-        width: 400, height: 300, borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(ellipse, rgba(79,70,229,0.08) 0%, transparent 70%)",
-      }} />
-
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 480, width: "100%" }}>
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 6,
-          padding: "5px 12px",
-          background: "var(--brand-50)", border: "1px solid var(--brand-200)",
-          borderRadius: "var(--radius-full)", marginBottom: 24,
-        }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand-primary)" }} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--brand-primary)", letterSpacing: "0.04em" }}>
-            School management, reimagined
-          </span>
-        </div>
-
-        <h1 style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "clamp(36px, 9vw, 56px)",
-          fontWeight: 800, lineHeight: 1.06,
-          letterSpacing: "-0.04em",
-          color: "var(--ink-900)",
-          marginBottom: 18,
-        }}>
-          One platform.<br />
-          <span style={{ color: "var(--brand-primary)" }}>Every school</span><br />
-          workflow.
-        </h1>
-
-        <p style={{
-          fontSize: 16, color: "var(--ink-500)", lineHeight: 1.7,
-          maxWidth: 380, margin: "0 auto 36px",
-        }}>
-          Attendance, results, fees, and parent communication — all in one place. No training required.
-        </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
-          <Link href="/register" style={{
-            fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600,
-            padding: "14px 32px", borderRadius: "var(--radius-md)",
-            background: "var(--brand-primary)", color: "white",
-            textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8,
-            width: "100%", maxWidth: 320, justifyContent: "center",
-          }}>
-            Start for free <ArrowRight />
-          </Link>
-          <button style={{
-            fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 500,
-            padding: "12px 28px", borderRadius: "var(--radius-md)",
-            background: "transparent", color: "var(--ink-600)",
-            border: "1px solid var(--ink-200)", cursor: "pointer",
-            display: "inline-flex", alignItems: "center", gap: 7,
-            width: "100%", maxWidth: 320, justifyContent: "center",
-          }}>
-            <Play /> See how it works
-          </button>
-        </div>
-
-        <p style={{ fontSize: 12, color: "var(--ink-400)", marginTop: 20 }}>
-          No credit card. Setup in under 5 minutes.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-/* ── Feature visuals ────────────────────────────────────────────────── */
+/* ── Mini visuals (show, don't tell) ─────────────────────────────────── */
 function AttendanceVisual() {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-  const pct  = [96, 91, 98, 88, 94];
+  const days = ["M", "T", "W", "T", "F"];
+  const pct = [96, 91, 98, 88, 94];
   return (
-    <div style={{ background: "var(--surface-0)", border: "1px solid var(--ink-200)", borderRadius: "var(--radius-lg)", padding: "24px 20px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "var(--ink-800)" }}>Weekly Attendance</span>
-        <span style={{ fontSize: 11, color: "var(--ink-400)", background: "var(--ink-100)", padding: "3px 8px", borderRadius: 4 }}>Class 9-B</span>
+    <div style={CARD}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
+        <span style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 700, color: "var(--ink-800)" }}>Attendance</span>
+        <span style={{ fontSize: 10, color: "var(--ink-400)", background: "var(--ink-100)", padding: "2px 7px", borderRadius: 4 }}>9-B</span>
       </div>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 80, marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 72, marginBottom: 6 }}>
         {days.map((d, i) => (
-          <div key={d} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 10, color: "var(--ink-500)", fontWeight: 600 }}>{pct[i]}%</span>
-            <div style={{ width: "100%", borderRadius: "3px 3px 0 0", height: `${pct[i] * 0.7}%`, background: pct[i] >= 95 ? "var(--brand-primary)" : pct[i] >= 90 ? "var(--brand-400)" : "var(--brand-200)" }} />
+          <div key={`${d}-${i}`} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 9, fontWeight: 600, color: "var(--ink-500)" }}>{pct[i]}%</span>
+            <div style={{ width: "100%", borderRadius: "3px 3px 0 0", height: `${pct[i] * 0.65}%`, background: pct[i] >= 95 ? "var(--brand-primary)" : "var(--brand-400)" }} />
           </div>
         ))}
       </div>
-      <div style={{ display: "flex", gap: 10 }}>
-        {days.map((d) => <span key={d} style={{ flex: 1, textAlign: "center", fontSize: 10, color: "var(--ink-400)" }}>{d}</span>)}
-      </div>
-      <div style={{ marginTop: 16, padding: "10px 12px", background: "var(--brand-50)", borderRadius: "var(--radius-sm)", display: "flex", alignItems: "center", gap: 8 }}>
-        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand-primary)", flexShrink: 0 }} />
-        <span style={{ fontSize: 12, color: "var(--brand-900)" }}>3 students below 85% — parents notified</span>
-      </div>
-    </div>
-  );
-}
-
-function ResultsVisual() {
-  const subjects = [
-    { name: "Mathematics", score: 88 },
-    { name: "Science", score: 74 },
-    { name: "English", score: 91 },
-    { name: "History", score: 67 },
-  ];
-  return (
-    <div style={{ background: "var(--surface-0)", border: "1px solid var(--ink-200)", borderRadius: "var(--radius-lg)", padding: "24px 20px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "var(--ink-800)" }}>Term 2 Results</span>
-        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--brand-primary)", background: "var(--brand-50)", padding: "3px 8px", borderRadius: 4 }}>Published</span>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {subjects.map((s) => (
-          <div key={s.name}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ fontSize: 13, color: "var(--ink-700)", fontWeight: 500 }}>{s.name}</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: s.score >= 85 ? "var(--brand-primary)" : s.score >= 70 ? "var(--ink-700)" : "#d97706" }}>{s.score}</span>
-            </div>
-            <div style={{ height: 5, background: "var(--ink-100)", borderRadius: 3, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${s.score}%`, background: s.score >= 85 ? "var(--brand-primary)" : s.score >= 70 ? "var(--brand-400)" : "#f59e0b", borderRadius: 3 }} />
-            </div>
-          </div>
-        ))}
+      <div style={{ padding: "8px 10px", background: "var(--brand-50)", borderRadius: "var(--radius-sm)", fontSize: 11, color: "var(--brand-700)", display: "flex", alignItems: "center", gap: 6 }}>
+        <span>💬</span> 2 absent — parents notified
       </div>
     </div>
   );
@@ -172,126 +46,278 @@ function ResultsVisual() {
 
 function FeesVisual() {
   return (
-    <div style={{ background: "var(--surface-0)", border: "1px solid var(--ink-200)", borderRadius: "var(--radius-lg)", padding: "24px 20px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "var(--ink-800)" }}>Fee Collection</span>
-        <span style={{ fontSize: 11, color: "var(--ink-400)" }}>Q3 2025</span>
+    <div style={CARD}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+        <span style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 700, color: "var(--ink-800)" }}>Fees</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: "#dc2626", background: "#fef2f2", padding: "2px 7px", borderRadius: 4 }}>₹48K due</span>
       </div>
       {[
-        { label: "Tuition fees",  status: "Paid",    date: "Aug 1"  },
-        { label: "Lab charges",   status: "Paid",    date: "Aug 1"  },
-        { label: "Annual day",    status: "Due",     date: "Sep 15" },
-        { label: "Transport",     status: "Overdue", date: "Jul 15" },
+        { label: "Tuition", status: "Paid", ok: true },
+        { label: "Transport", status: "Overdue", ok: false },
       ].map((f) => (
-        <div key={f.label} style={{ display: "flex", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--ink-100)", gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-800)" }}>{f.label}</div>
-            <div style={{ fontSize: 11, color: "var(--ink-400)", marginTop: 2 }}>{f.date}</div>
+        <div key={f.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--ink-100)", fontSize: 12 }}>
+          <span style={{ color: "var(--ink-700)" }}>{f.label}</span>
+          <span style={{ fontWeight: 700, fontSize: 10, color: f.ok ? "#15803d" : "#dc2626" }}>{f.status}</span>
+        </div>
+      ))}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: "5px 10px", borderRadius: 999, background: "#dcfce7", color: "#15803d" }}>💬 WhatsApp reminders</span>
+        <span style={{ fontSize: 11, fontWeight: 700, padding: "5px 10px", borderRadius: 999, background: "var(--brand-50)", color: "var(--brand-primary)" }}>📞 AI voice calls</span>
+      </div>
+    </div>
+  );
+}
+
+function ResultsVisual() {
+  const rows = [
+    { name: "Math", score: 88 },
+    { name: "Science", score: 74 },
+    { name: "English", score: 91 },
+  ];
+  return (
+    <div style={CARD}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 700, color: "var(--ink-800)", marginBottom: 12 }}>Results</div>
+      {rows.map((s) => (
+        <div key={s.name} style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
+            <span style={{ color: "var(--ink-600)" }}>{s.name}</span>
+            <span style={{ fontWeight: 700, color: "var(--brand-primary)" }}>{s.score}</span>
           </div>
-          <span style={{
-            fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
-            background: f.status === "Paid" ? "#dcfce7" : f.status === "Due" ? "var(--brand-50)" : "#fef2f2",
-            color:      f.status === "Paid" ? "#15803d" : f.status === "Due" ? "var(--brand-primary)" : "#dc2626",
-          }}>{f.status}</span>
+          <div style={{ height: 4, background: "var(--ink-100)", borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${s.score}%`, background: "var(--brand-primary)", borderRadius: 3 }} />
+          </div>
         </div>
       ))}
     </div>
   );
 }
 
-/* ── Feature section ────────────────────────────────────────────────── */
-function FeatureBlock({ label, title, desc, checks, visual }: {
-  label: string; title: string; desc: string; checks: string[]; visual: ReactNode;
+function NotifyCard({
+  title,
+  body,
+  tone,
+  className,
+}: {
+  title: string;
+  body: string;
+  tone: "green" | "brand";
+  className?: string;
 }) {
+  const isGreen = tone === "green";
   return (
-    <div style={{ padding: "64px 24px", display: "flex", flexDirection: "column", gap: 32 }}>
-      <div style={{ maxWidth: 520, margin: "0 auto", width: "100%" }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "var(--brand-primary)", marginBottom: 10 }}>
-          {label}
-        </p>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(22px, 5vw, 32px)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.15, color: "var(--ink-900)", marginBottom: 14 }}>
-          {title}
-        </h2>
-        <p style={{ fontSize: 15, color: "var(--ink-500)", lineHeight: 1.75, marginBottom: 24 }}>
-          {desc}
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {checks.map((c) => (
-            <div key={c} style={{ display: "flex", alignItems: "flex-start", gap: 9, fontSize: 14, color: "var(--ink-700)", lineHeight: 1.5 }}>
-              <span style={{ color: "var(--brand-primary)", marginTop: 1, flexShrink: 0 }}><Check /></span>
-              {c}
-            </div>
-          ))}
+    <div
+      className={className}
+      style={{
+        padding: "12px 14px",
+        borderRadius: "var(--radius-md)",
+        background: isGreen ? "#dcfce7" : "var(--brand-50)",
+        textAlign: "left",
+      }}
+    >
+      <div
+        className="lp-notify-title"
+        style={{ color: isGreen ? "#15803d" : "var(--brand-primary)" }}
+      >
+        {title}
+      </div>
+      <div className="lp-notify-body">{body}</div>
+    </div>
+  );
+}
+
+function CommsVisual() {
+  return (
+    <div style={CARD}>
+      <div style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--ink-800)", marginBottom: 12 }}>
+        Parent communications
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <NotifyCard
+          title="WhatsApp sent ✓"
+          body="Fee reminder with UPI payment link"
+          tone="green"
+        />
+        <NotifyCard
+          title="Voice call done ✓"
+          body="Parent confirmed payment by Friday"
+          tone="brand"
+        />
+      </div>
+    </div>
+  );
+}
+
+function HeroDashboardVisual() {
+  return (
+    <>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid var(--ink-100)", textAlign: "left" }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--brand-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+          🏫
+        </div>
+        <div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--ink-900)" }}>
+            Sunrise Public School
+          </div>
+          <div style={{ fontSize: 12, color: "var(--ink-400)", marginTop: 2 }}>Today&apos;s dashboard</div>
         </div>
       </div>
-      <div style={{ maxWidth: 520, margin: "0 auto", width: "100%" }}>
-        {visual}
+
+      <div style={{ padding: "14px 16px", borderRadius: "var(--radius-md)", background: "var(--surface-1)", marginBottom: 12, textAlign: "left" }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-500)", marginBottom: 4 }}>Amount collected</div>
+        <div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 800, color: "var(--ink-900)", letterSpacing: "-0.02em" }}>
+          ₹1,24,500
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "#15803d", marginTop: 4 }}>+₹12,500 collected today</div>
       </div>
-    </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <NotifyCard
+          title="WhatsApp sent ✓"
+          body="Fee reminder sent to 24 parents"
+          tone="green"
+        />
+        <NotifyCard
+          title="Voice call done ✓"
+          body="8 parents confirmed payment"
+          tone="brand"
+        />
+      </div>
+    </>
   );
 }
 
-function Features() {
-  return (
-    <div style={{ background: "var(--surface-1)", borderTop: "1px solid var(--ink-100)" }}>
-      <FeatureBlock
-        label="Attendance"
-        title="Know who's present before class starts"
-        desc="QR-based check-in with instant parent alerts when a student is absent. No registers, no manual entry."
-        checks={["Mark attendance in seconds", "Automated parent SMS and WhatsApp", "Absence trends flagged automatically"]}
-        visual={<AttendanceVisual />}
-      />
-      <div style={{ height: 1, background: "var(--ink-100)", margin: "0 24px" }} />
-      <FeatureBlock
-        label="Exams & Results"
-        title="From gradebook to report card in one click"
-        desc="Enter marks in bulk, publish results instantly. Report cards generate automatically — no formatting required."
-        checks={["Bulk mark entry with CSV import", "Instant result publication", "Auto-generated PDF report cards"]}
-        visual={<ResultsVisual />}
-      />
-      <div style={{ height: 1, background: "var(--ink-100)", margin: "0 24px" }} />
-      <FeatureBlock
-        label="Fee Management"
-        title="Collections that run themselves"
-        desc="Online payment links, automated reminders, and real-time dues tracking. UPI, card, net banking."
-        checks={["Razorpay & PayU integration", "Auto-reminders for overdue fees", "One-tap receipt generation"]}
-        visual={<FeesVisual />}
-      />
-    </div>
-  );
-}
+const SHOWCASE = [
+  { icon: "📋", title: "Attendance", tag: "WhatsApp alerts to parents", visual: <AttendanceVisual /> },
+  { icon: "💰", title: "Fees", tag: "WhatsApp reminders & AI voice calls", visual: <FeesVisual /> },
+  { icon: "📊", title: "Results", tag: "Publish and share instantly", visual: <ResultsVisual /> },
+  { icon: "📱", title: "Parent communications", tag: "WhatsApp and voice follow-ups", visual: <CommsVisual /> },
+];
 
-/* ── Testimonials ───────────────────────────────────────────────────── */
-function Testimonials() {
-  const quotes = [
-    { init: "SR", name: "Sunita Rao",      role: "Principal, DPS Pune",              text: "We were running attendance on paper and fees on Excel. VidyaTrack replaced both in a week. The AI flagged patterns we'd never have spotted on our own." },
-    { init: "AK", name: "Amit Kulkarni",   role: "Admin, Ryan International",        text: "Fee follow-ups used to eat two weeks of every month. Now they're automated. We recovered overdue payments we'd written off as lost." },
-    { init: "NM", name: "Neha Malhotra",   role: "VP, Kendriya Vidyalaya",           text: "The timetable builder sold our staff coordinator instantly. Setup took 20 minutes. Parents actually complimented us on the communication app." },
-  ];
-
+/* ── Hero ───────────────────────────────────────────────────────────── */
+function Hero() {
   return (
-    <section style={{ padding: "64px 24px", background: "var(--surface-0)", borderTop: "1px solid var(--ink-100)" }}>
-      <div style={{ maxWidth: 520, margin: "0 auto" }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--brand-primary)", marginBottom: 10, textAlign: "center" }}>
-          From schools using VidyaTrack
+    <section style={{ padding: "80px 20px 40px", background: "var(--surface-0)", textAlign: "center", position: "relative" }}>
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(79,70,229,0.08), transparent 65%)" }} />
+
+      <div style={{ ...BOX, position: "relative", zIndex: 1 }}>
+        <div className="lp-reveal" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", background: "var(--brand-50)", border: "1px solid var(--brand-200)", borderRadius: "var(--radius-full)", marginBottom: 16 }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand-primary)" }} />
+          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--brand-primary)" }}>School app · Made for India</span>
+        </div>
+
+        <h1 className="lp-reveal lp-reveal-d1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 9vw, 50px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-0.04em", color: "var(--ink-900)", marginBottom: 12 }}>
+          Run your school<br /><span style={{ color: "var(--brand-primary)" }}>with AI</span>
+        </h1>
+
+        <div className="lp-reveal lp-reveal-d2" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 22 }}>
+          {[
+            { icon: "📞", label: "AI voice calls", bg: "var(--brand-50)", color: "var(--brand-primary)", border: "var(--brand-200)" },
+            { icon: "💬", label: "WhatsApp", bg: "#dcfce7", color: "#15803d", border: "#86efac" },
+            { icon: "📋", label: "Attendance", bg: "#dbeafe", color: "#1d4ed8", border: "#93c5fd" },
+            { icon: "💰", label: "Fees", bg: "#fef3c7", color: "#b45309", border: "#fcd34d" },
+            { icon: "📊", label: "Results", bg: "#fae8ff", color: "#9333ea", border: "#e9d5ff" },
+          ].map((item) => (
+            <span
+              key={item.label}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 11,
+                fontWeight: 700,
+                color: item.color,
+                background: item.bg,
+                border: `1px solid ${item.border}`,
+                borderRadius: "var(--radius-full)",
+                padding: "6px 12px",
+              }}
+            >
+              <span style={{ fontSize: 12, lineHeight: 1 }}>{item.icon}</span>
+              {item.label}
+            </span>
+          ))}
+        </div>
+
+        <Link href="/register" className="lp-reveal lp-reveal-d3" style={{
+          fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600,
+          padding: "14px 28px", borderRadius: "var(--radius-md)",
+          background: "var(--brand-primary)", color: "white",
+          textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8,
+          width: "100%", maxWidth: 280, justifyContent: "center", marginBottom: 8,
+        }}>
+          Start 14-day trial <ArrowRight />
+        </Link>
+        <p className="lp-reveal lp-reveal-d4" style={{ fontSize: 11, color: "var(--ink-400)", marginBottom: 16 }}>No credit card · 5 min setup</p>
+      </div>
+
+      <div className="lp-hero-preview" style={{ ...BOX, marginTop: 16 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-400)", marginBottom: 8, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+          Live preview
         </p>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(22px, 5vw, 32px)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.15, color: "var(--ink-900)", marginBottom: 36, textAlign: "center" }}>
-          Built for the people who actually run schools
+        <div className="lp-float">
+          <div className="lp-hero-preview-card">
+            <HeroDashboardVisual />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Visual showcase ─────────────────────────────────────────────────── */
+function VisualShowcase() {
+  return (
+    <section id="features" style={{ padding: "40px 20px 44px", background: "var(--surface-1)", borderTop: "1px solid var(--ink-100)", overflow: "hidden" }}>
+      <div style={{ ...BOX, marginBottom: 24, textAlign: "center" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ink-900)", marginBottom: 6 }}>
+          See it in action
         </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {quotes.map((q) => (
-            <div key={q.init} style={{ background: "var(--surface-1)", border: "1px solid var(--ink-200)", borderRadius: "var(--radius-lg)", padding: "20px" }}>
-              <div style={{ display: "flex", gap: 2, marginBottom: 10 }}>
-                {[...Array(5)].map((_, i) => <span key={i} style={{ fontSize: 11, color: "#f59e0b" }}>★</span>)}
+        <p style={{ fontSize: 13, color: "var(--ink-500)" }}>Everything your school needs, in one app</p>
+      </div>
+
+      <div className="lp-features" style={BOX}>
+        {SHOWCASE.map((item) => (
+          <div key={item.title}>
+            <div style={{ marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 24, lineHeight: 1 }}>{item.icon}</span>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 700, color: "var(--ink-900)" }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: "var(--brand-primary)", fontWeight: 600, marginTop: 2 }}>{item.tag}</div>
               </div>
-              <p style={{ fontSize: 14, color: "var(--ink-700)", lineHeight: 1.7, marginBottom: 14 }}>"{q.text}"</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--brand-100)", fontSize: 10, fontWeight: 700, color: "var(--brand-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{q.init}</div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-900)" }}>{q.name}</div>
-                  <div style={{ fontSize: 11, color: "var(--ink-400)" }}>{q.role}</div>
-                </div>
+            </div>
+            {item.visual}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ── 3-step visual ──────────────────────────────────────────────────── */
+function Steps() {
+  const steps = [
+    { icon: "🏫", label: "Register" },
+    { icon: "👥", label: "Add students" },
+    { icon: "📱", label: "Go live" },
+  ];
+  return (
+    <section style={{ padding: "40px 20px", background: "var(--surface-0)", borderTop: "1px solid var(--ink-100)" }}>
+      <div style={BOX}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, textAlign: "center", color: "var(--ink-900)", marginBottom: 20 }}>
+          Up in 3 steps
+        </h2>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+          {steps.map((s, i) => (
+            <div key={s.label} style={{ flex: 1, textAlign: "center" }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: 16, margin: "0 auto 8px",
+                background: i === 2 ? "var(--brand-primary)" : "var(--surface-1)",
+                border: "1px solid var(--ink-200)",
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
+              }}>
+                {s.icon}
               </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-700)" }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -299,154 +325,157 @@ function Testimonials() {
     </section>
   );
 }
+
+/* ── Social proof ───────────────────────────────────────────────────── */
+function SocialProof() {
+  return (
+    <section style={{ padding: "36px 20px", background: "var(--surface-1)", borderTop: "1px solid var(--ink-100)" }}>
+      <div style={{ ...BOX, ...CARD, textAlign: "center", padding: "22px 18px" }}>
+        <div style={{ fontSize: 28, marginBottom: 8 }}>⭐⭐⭐⭐⭐</div>
+        <p style={{ fontSize: 14, color: "var(--ink-700)", lineHeight: 1.6, marginBottom: 12 }}>
+          &ldquo;Fee follow-ups on WhatsApp and voice calls saved us two weeks every month.&rdquo;
+        </p>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-900)" }}>Amit K. · School Admin</div>
+      </div>
+    </section>
+  );
+}
+
+const PRICING_PLANS = [
+  {
+    name: "Starter",
+    students: "Up to 150 students",
+    price: "999",
+    features: ["Attendance", "Fees", "Results", "WhatsApp"],
+    popular: false,
+  },
+  {
+    name: "Growth",
+    students: "Up to 500 students",
+    price: "2,999",
+    features: ["Everything in Starter", "AI voice calls", "Fee automation"],
+    popular: true,
+  },
+  {
+    name: "School",
+    students: "Up to 2,000 students",
+    price: "5,999",
+    features: ["Everything in Growth", "Priority support", "Multi-branch ready"],
+    popular: false,
+  },
+] as const;
+
+const trialButtonStyle = {
+  display: "block",
+  textAlign: "center" as const,
+  padding: "12px",
+  borderRadius: "var(--radius-md)",
+  background: "var(--brand-primary)",
+  color: "#fff",
+  textDecoration: "none",
+  fontFamily: "var(--font-display)",
+  fontSize: 13,
+  fontWeight: 600,
+};
 
 /* ── Pricing ────────────────────────────────────────────────────────── */
 function Pricing() {
-  const plans = [
-    {
-      name: "Starter", price: "Free", note: "Up to 100 students",
-      features: ["Attendance tracking", "Basic report cards", "Parent email alerts", "Up to 5 staff accounts"],
-      cta: "Get started free", primary: false, badge: "",
-    },
-    {
-      name: "School", price: "₹4,999", period: "/mo", note: "Up to 1,000 students",
-      badge: "Most popular",
-      features: ["Everything in Starter", "AI insights & alerts", "Fee management + payments", "WhatsApp & SMS", "Unlimited staff"],
-      cta: "Start 14-day trial", primary: true,
-    },
-    {
-      name: "Enterprise", price: "Custom", note: "Unlimited · multi-branch",
-      features: ["Everything in School", "Dedicated account manager", "Custom integrations", "On-premise option", "SLA guarantee"],
-      cta: "Talk to us", primary: false, badge: "",
-    },
-  ];
-
   return (
-    <section style={{ padding: "64px 24px", background: "var(--surface-1)", borderTop: "1px solid var(--ink-100)" }}>
-      <div style={{ maxWidth: 520, margin: "0 auto" }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--brand-primary)", marginBottom: 10, textAlign: "center" }}>Pricing</p>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(22px, 5vw, 32px)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.15, color: "var(--ink-900)", marginBottom: 8, textAlign: "center" }}>
-          Pay for what you use
+    <section id="pricing" style={{ padding: "40px 20px", background: "var(--surface-0)", borderTop: "1px solid var(--ink-100)" }}>
+      <div style={BOX}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, textAlign: "center", color: "var(--ink-900)", marginBottom: 8 }}>
+          Pricing that grows with your school
         </h2>
-        <p style={{ fontSize: 15, color: "var(--ink-500)", lineHeight: 1.7, marginBottom: 32, textAlign: "center" }}>
-          No module charges. No hidden fees. Cancel anytime.
+        <p style={{ fontSize: 13, color: "var(--ink-500)", textAlign: "center", lineHeight: 1.55, marginBottom: 20 }}>
+          All plans start with a 14-day free trial. Pay based on student count after trial.
         </p>
+
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {plans.map((p) => (
-            <div key={p.name} style={{
-              background: "var(--surface-0)", borderRadius: "var(--radius-lg)",
-              border: p.primary ? "2px solid var(--brand-primary)" : "1px solid var(--ink-200)",
-              padding: "22px 20px", position: "relative",
-            }}>
-              {p.badge && (
-                <div style={{
-                  position: "absolute", top: -10, left: 18,
-                  background: "var(--brand-primary)", color: "white",
-                  fontSize: 10, fontWeight: 700, letterSpacing: "0.04em",
-                  padding: "3px 10px", borderRadius: "var(--radius-full)",
+          {PRICING_PLANS.map((plan) => (
+            <div
+              key={plan.name}
+              style={{
+                ...CARD,
+                position: "relative",
+                border: plan.popular ? "2px solid var(--brand-primary)" : "1px solid var(--ink-200)",
+              }}
+            >
+              {plan.popular && (
+                <span style={{
+                  position: "absolute", top: -10, left: 14,
+                  background: "var(--brand-primary)", color: "#fff",
+                  fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
                 }}>
-                  {p.badge}
-                </div>
+                  Popular
+                </span>
               )}
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14, gap: 12 }}>
-                <div>
-                  <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--ink-800)", marginBottom: 3 }}>{p.name}</div>
-                  <div style={{ fontSize: 12, color: "var(--ink-400)" }}>{p.note}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12, gap: 12 }}>
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "var(--ink-900)" }}>{plan.name}</div>
+                  <div style={{ fontSize: 11, color: "var(--ink-400)", marginTop: 2 }}>{plan.students}</div>
                 </div>
-                <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <span style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 800, letterSpacing: "-0.04em", color: "var(--ink-900)" }}>{p.price}</span>
-                  {"period" in p && p.period && <span style={{ fontSize: 12, color: "var(--ink-400)" }}>{p.period}</span>}
+                <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: "var(--ink-900)", flexShrink: 0 }}>
+                  ₹{plan.price}<span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-400)" }}>/mo</span>
                 </div>
               </div>
-              <div style={{ height: 1, background: "var(--ink-100)", marginBottom: 14 }} />
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
-                {p.features.map((f) => (
-                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--ink-600)" }}>
-                    <span style={{ color: "var(--brand-primary)" }}><Check /></span>
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 14px", textAlign: "left" }}>
+                {plan.features.map((f) => (
+                  <li key={f} style={{ fontSize: 12, color: "var(--ink-600)", marginBottom: 6, paddingLeft: 18, position: "relative" }}>
+                    <span style={{ position: "absolute", left: 0, color: "var(--brand-primary)", fontWeight: 700 }}>✓</span>
                     {f}
-                  </div>
+                  </li>
                 ))}
-              </div>
-              <button style={{
-                width: "100%", padding: "11px 0", borderRadius: "var(--radius-md)",
-                fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 600, cursor: "pointer",
-                ...(p.primary
-                  ? { background: "var(--brand-primary)", color: "white", border: "none" }
-                  : { background: "transparent", color: "var(--ink-700)", border: "1.5px solid var(--ink-200)" }),
-              }}>
-                {p.cta}
-              </button>
+              </ul>
+              <Link href="/register" style={trialButtonStyle}>
+                Start 14-day trial
+              </Link>
             </div>
           ))}
         </div>
+
+        <p style={{ fontSize: 12, color: "var(--ink-400)", textAlign: "center", marginTop: 16, lineHeight: 1.5 }}>
+          Enterprise — 2,000+ students ·{" "}
+          <a href="mailto:sales@vidyatrack.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
+            Contact us
+          </a>
+        </p>
       </div>
     </section>
   );
 }
 
-/* ── Final CTA ──────────────────────────────────────────────────────── */
 function FinalCTA() {
   return (
-    <section style={{ padding: "80px 24px", background: "var(--ink-900)", textAlign: "center", position: "relative", overflow: "hidden" }}>
-      <div style={{
-        position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-        width: 500, height: 300, borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(ellipse, rgba(79,70,229,0.35) 0%, transparent 70%)",
-      }} />
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 440, margin: "0 auto" }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(26px, 6vw, 40px)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.1, color: "white", marginBottom: 14 }}>
-          Your school deserves better tools.
+    <section style={{ padding: "48px 20px", background: "var(--ink-900)", textAlign: "center" }}>
+      <div style={BOX}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(22px, 5vw, 30px)", fontWeight: 800, color: "#fff", marginBottom: 10, letterSpacing: "-0.03em" }}>
+          Start your 14-day trial
         </h2>
-        <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", marginBottom: 32, lineHeight: 1.7 }}>
-          Start free. No credit card. Works on any device.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
-          <Link href="/register" style={{
-            fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600,
-            padding: "14px 32px", borderRadius: "var(--radius-md)",
-            background: "white", color: "var(--brand-primary)",
-            textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8,
-            width: "100%", maxWidth: 320, justifyContent: "center",
-          }}>
-            Get started free <ArrowRight />
-          </Link>
-          <Link href="/login" style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", textDecoration: "none", marginTop: 4 }}>
-            Already have an account? Sign in
-          </Link>
-        </div>
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 20 }}>No credit card · Works on any phone · No training needed</p>
+        <Link href="/register" style={{
+          fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600,
+          padding: "14px 28px", borderRadius: "var(--radius-md)",
+          background: "#fff", color: "var(--brand-primary)",
+          textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8,
+        }}>
+          Start 14-day trial <ArrowRight />
+        </Link>
       </div>
     </section>
   );
 }
 
-/* ── Footer ─────────────────────────────────────────────────────────── */
-function Footer() {
-  return (
-    <footer style={{ background: "var(--ink-900)", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "28px 24px" }}>
-      <div style={{ maxWidth: 520, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14, alignItems: "center", textAlign: "center" }}>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>VidyaTrack</span>
-        <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
-          {["Privacy", "Terms", "Security", "Contact"].map((l) => (
-            <Link key={l} href="#" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none", fontSize: 12 }}>{l}</Link>
-          ))}
-        </div>
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)" }}>© 2025 VidyaTrack</span>
-      </div>
-    </footer>
-  );
-}
-
-/* ── Page ───────────────────────────────────────────────────────────── */
 export default function LandingPage() {
   return (
-    <>
+    <div style={{ overflowX: "hidden" }}>
       <MarketingNavbar />
       <Hero />
-      <Features />
-      <Testimonials />
+      <VisualShowcase />
+      <Steps />
+      <SocialProof />
       <Pricing />
       <FinalCTA />
-      <Footer />
-    </>
+      <MarketingFooter />
+    </div>
   );
 }
