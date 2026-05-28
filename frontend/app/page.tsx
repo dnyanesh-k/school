@@ -242,7 +242,7 @@ function Hero() {
         </div>
 
         <h1 className="lp-reveal lp-reveal-d1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 9vw, 50px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-0.04em", color: "var(--ink-900)", marginBottom: 12 }}>
-          Run your school<br /><span style={{ color: "var(--brand-primary)" }}>with AI</span>
+          Run your institute<br /><span style={{ color: "var(--brand-primary)" }}>with AI</span>
         </h1>
 
         <div className="lp-reveal lp-reveal-d2" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginBottom: 22 }}>
@@ -306,9 +306,8 @@ function VisualShowcase() {
     <section id="features" style={{ padding: "40px 20px 44px", background: "var(--surface-1)", borderTop: "1px solid var(--ink-100)", overflow: "hidden" }}>
       <div style={{ ...BOX, marginBottom: 24, textAlign: "center" }}>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ink-900)", marginBottom: 6 }}>
-          See it in action
+          Everything your school needs, in one app
         </h2>
-        <p style={{ fontSize: 13, color: "var(--ink-500)" }}>Everything your school needs, in one app</p>
       </div>
 
       <div className="lp-features" style={BOX}>
