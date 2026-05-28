@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authService, getErrorMessage } from "@/services/authService";
 import { Input }      from "@/components/ui/Input";
@@ -14,6 +15,14 @@ interface FieldError { [key: string]: string; }
 
 export default function LoginPage() {
   const router = useRouter();
+  const [resetSuccess, setResetSuccess] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("password_reset_success") === "1") {
+      setResetSuccess(true);
+      sessionStorage.removeItem("password_reset_success");
+    }
+  }, []);
 
   const [form, setForm]         = useState<LoginForm>({ email: "", password: "" });
   const [errors, setErrors]     = useState<FieldError>({});
@@ -103,15 +112,29 @@ export default function LoginPage() {
 
         {/* Forgot — tight under password field */}
         <div style={{ textAlign: "right", marginBottom: "28px" }}>
-          <a href="/forgot-password" style={{
+          <Link href="/forgot-password" style={{
             fontSize: "13px",
             color: "var(--brand-primary)",
             fontWeight: 500,
             textDecoration: "none",
           }}>
             Forgot password?
-          </a>
+          </Link>
         </div>
+
+        {resetSuccess ? (
+          <div style={{
+            padding: "12px 14px",
+            background: "var(--brand-50)",
+            border: "1px solid var(--brand-200)",
+            borderRadius: "var(--radius-md)",
+            fontSize: "13px",
+            color: "var(--brand-700)",
+            marginBottom: "16px",
+          }}>
+            Password updated. Sign in with your new password.
+          </div>
+        ) : null}
 
         {/* API error */}
         {apiError && (

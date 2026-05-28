@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.core.soft_delete import soft_delete
@@ -11,7 +11,10 @@ class UserRepository:
 
     async def get_by_email(self, email: str) -> User | None:
         result = await self.db.execute(
-            select(User).where(User.email == email, User.is_deleted == False)
+            select(User).where(
+                func.lower(User.email) == email.strip().lower(),
+                User.is_deleted == False,
+            )
         )
         return result.scalar_one_or_none()
 

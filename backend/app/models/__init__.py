@@ -8,6 +8,7 @@ from app.models.student import Student
 from app.models.subject import Subject
 from app.models.test import Test
 from app.models.test_score import TestScore
+from app.models.password_reset_otp import PasswordResetOtp
 from app.models.user import User
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "Holiday",
     "Installment",
     "Institute",
+    "PasswordResetOtp",
     "Student",
     "Subject",
     "Test",

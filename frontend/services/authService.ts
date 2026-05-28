@@ -45,6 +45,10 @@ export interface LoginResponse {
   user: AuthUser;
 }
 
+export interface MessageResponse {
+  message: string;
+}
+
 function decodeToken() {
   const token = localStorage.getItem("token");
   if (!token) return null;
@@ -74,6 +78,20 @@ export const authService = {
     const response = await api.post(API_URLS.AUTH.LOGIN, payload);
     localStorage.setItem("token", response.data.access_token);
     return response.data as LoginResponse;
+  },
+
+  async requestPasswordReset(email: string): Promise<MessageResponse> {
+    const response = await api.post(API_URLS.AUTH.FORGOT_PASSWORD, { email });
+    return response.data as MessageResponse;
+  },
+
+  async resetPassword(payload: {
+    email: string;
+    otp: string;
+    new_password: string;
+  }): Promise<MessageResponse> {
+    const response = await api.post(API_URLS.AUTH.RESET_PASSWORD, payload);
+    return response.data as MessageResponse;
   },
 
   async me(): Promise<AuthUser> {

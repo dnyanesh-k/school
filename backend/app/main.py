@@ -18,6 +18,7 @@ from app.models import (  # noqa: F401 — register SQLAlchemy models with metad
     Holiday,
     Installment,
     Institute,
+    PasswordResetOtp,
     Student,
     Subject,
     Test,

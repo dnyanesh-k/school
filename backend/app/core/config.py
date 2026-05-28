@@ -32,5 +32,14 @@ class Settings(BaseSettings):
     platform_admin_password: str | None = None
     platform_admin_name: str = "Platform Admin"
 
+    # Email (Gmail SMTP for MVP)
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from_email: str | None = None
+    smtp_from_name: str = "VidyaTrack"
+    otp_expire_minutes: int = 10
+
 
 settings = Settings()

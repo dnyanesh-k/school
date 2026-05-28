@@ -18,6 +18,7 @@ from app.models import (
     Holiday,
     Installment,
     Institute,
+    PasswordResetOtp,
     Student,
     Subject,
     Test,
