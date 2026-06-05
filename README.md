@@ -273,8 +273,8 @@ flowchart TB
 ### Request flow
 
 1. **Institute owner** registers → institute status `pending` → **platform admin** approves → owner logs in.
-2. JWT stored in browser; dashboard routes call `/api/v1/*` with `Authorization: Bearer`.
-3. Tables are auto-created on backend startup (`create_all` in lifespan).
+2. JWT (30-day expiry) stored in browser localStorage; dashboard routes call `/api/v1/*` with `Authorization: Bearer`.
+3. Tables created on first startup via `create_all`; Alembic tracks all subsequent schema changes.
 4. **Parent automation:** fee defaulters, absent streaks, and test scores trigger **WhatsApp reminders** or **AI voice follow-ups** to the parent’s phone on file.
 
 ---
@@ -332,12 +332,12 @@ school/
 ### Integrations (current)
 - **WhatsApp:** opens parent chat with pre-filled message (`lib/whatsapp.ts`)
 - **Email OTP:** optional; if SMTP is unset, OTP is logged to backend console in dev
+- **PWA:** installable on Android/iOS, offline fallback, 30-day JWT sessions (no daily re-login)
 
 ### Not implemented yet (roadmap / marketing only)
 - AI voice calls (shown on landing page only)
 - Payment gateway / UPI links for parent or SaaS billing
 - WhatsApp Business API (automated send)
-- PWA / offline mode
 - Multi fee heads (tuition vs transport) — single plan + installments only
 - Gmail OTP login (steps.md mentions it; current login is email + password)
 
@@ -378,10 +378,40 @@ cp .env.example .env
 
 Edit `backend/.env`:
 
-- Set `DATABASE_URL` (PostgreSQL credentials)
-- Set `SECRET_KEY` (e.g. `openssl rand -hex 32`)
-- Set `PLATFORM_ADMIN_EMAIL` / `PLATFORM_ADMIN_PASSWORD` for first admin user
-- Optional: Gmail SMTP vars for forgot-password email (see `.env.example`)
+- **DATABASE_URL** — toggle local vs Supabase by commenting one line (both pre-filled in `.env.example`):
+
+```env
+# Local dev (active)
+DATABASE_URL=postgresql+asyncpg://USER:PASSWORD@localhost:5432/school_db
+
+# Supabase production (uncomment when deploying)
+# DATABASE_URL=postgresql+asyncpg://postgres.[ref]:[pass]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+```
+
+- **SECRET_KEY** — generate with `openssl rand -hex 32`
+- **PLATFORM_ADMIN_EMAIL / PASSWORD** — auto-created on first backend startup
+- Optional: Gmail SMTP vars for forgot-password OTP (see `.env.example`)
+- When switching to Supabase free tier, also set `DB_POOL_SIZE=3` and `DB_MAX_OVERFLOW=2`
+
+**Alembic migrations** (run from `backend/` with venv active):
+
+```bash
+# After any model change — autogenerate a migration
+alembic revision --autogenerate -m "describe the change"
+
+# Apply to DB
+alembic upgrade head
+
+# Roll back one step
+alembic downgrade -1
+
+# Show current revision
+alembic current
+```
+
+> On a fresh DB (e.g. new Supabase instance), just start the server once —
+> `create_all` builds all tables and auto-stamps Alembic at `head`.
+> All future deploys only need `alembic upgrade head` before starting.
 
 Run the API:
 
