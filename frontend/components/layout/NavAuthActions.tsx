@@ -46,7 +46,7 @@ export function NavAuthActions({
   if (!ready) {
     return (
       <div
-        style={{ width: variant === "marketing" ? 148 : 72, height: 36 }}
+        style={{ width: variant === "marketing" ? 64 : 72, height: 36 }}
         aria-hidden="true"
       />
     );
@@ -55,7 +55,10 @@ export function NavAuthActions({
   if (loggedIn) {
     return (
       <>
-        <InstallAppButton compact />
+        {/* Install button — desktop only to avoid navbar clutter on mobile */}
+        <span className="nav-install-desktop">
+          <InstallAppButton compact />
+        </span>
         <Link href={homeHref} style={primaryButtonStyle}>
           {homeLabel}
         </Link>
@@ -79,24 +82,22 @@ export function NavAuthActions({
     );
   }
 
+  // Guest + marketing: Sign in as a soft outlined pill
   return (
-    <>
-      <InstallAppButton compact />
-      <Link
-        href="/login"
-        style={{
-          fontSize: 13,
-          fontWeight: 500,
-          color: "var(--ink-500)",
-          textDecoration: "none",
-          padding: "6px 12px",
-        }}
-      >
-        Sign in
-      </Link>
-      <Link href="/register" style={primaryButtonStyle}>
-        Start trial
-      </Link>
-    </>
+    <Link
+      href="/login"
+      style={{
+        fontSize: 12,
+        fontWeight: 600,
+        color: "var(--ink-700)",
+        textDecoration: "none",
+        padding: "7px 14px",
+        border: "1px solid var(--ink-300)",
+        borderRadius: "var(--radius-md)",
+        background: "var(--surface-0)",
+      }}
+    >
+      Sign in
+    </Link>
   );
 }

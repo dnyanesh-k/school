@@ -183,7 +183,7 @@ function ItemSheet({
             onSuccess();
             onClose();
         } catch (error: any) {
-            setApiError(error?.response?.data?.detail || "Failed to save. Please try again.");
+            setApiError(error?.response?.data?.message || "Failed to save. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -422,7 +422,7 @@ function SettingsPageContent() {
             const data = await classService.list();
             setClasses(data);
         } catch (error) {
-            console.error("Failed to fetch classes");
+            showToast("Could not load classes. Please refresh.", "error");
         }
     };
 
@@ -432,8 +432,8 @@ function SettingsPageContent() {
             const data = await subjectService.listForClass(classId);
             setSubjects(data);
         } catch (error) {
-            console.error("Failed to fetch subjects");
             setSubjects([]);
+            showToast("Could not load subjects. Please refresh.", "error");
         }
     };
 
@@ -445,7 +445,7 @@ function SettingsPageContent() {
             setTestsTotalPages(data.total_pages);
             setTestsTotal(data.total);
         } catch (error) {
-            console.error("Failed to fetch tests");
+            showToast("Could not load tests. Please refresh.", "error");
         }
     };
 

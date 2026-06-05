@@ -10,16 +10,16 @@ export default function ContactPage() {
       <MarketingSectionTitle>Sales & demos</MarketingSectionTitle>
       <MarketingProse>
         Interested in VidyaTrack for your school? Email us at{" "}
-        <a href="mailto:sales@vidyatrack.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
-          sales@vidyatrack.com
+        <a href="mailto:vidyatrackai@gmail.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
+          sales
         </a>
         {" "}for a walkthrough or enterprise pricing (2,000+ students).
       </MarketingProse>
       <MarketingSectionTitle>Support</MarketingSectionTitle>
       <MarketingProse>
         Existing customers: reach support at{" "}
-        <a href="mailto:support@vidyatrack.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
-          support@vidyatrack.com
+        <a href="mailto:vidyatrackai@gmail.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
+          support
         </a>
         . We typically respond within one business day.
       </MarketingProse>

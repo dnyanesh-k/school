@@ -24,16 +24,16 @@ export default function PrivacyPage() {
       <MarketingSectionTitle>Your rights</MarketingSectionTitle>
       <MarketingProse>
         Institute admins may request access, correction, or deletion of data by contacting{" "}
-        <a href="mailto:support@vidyatrack.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
-          support@vidyatrack.com
+        <a href="mailto:vidyatrackai@gmail.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
+          support
         </a>
         .
       </MarketingProse>
       <MarketingSectionTitle>Contact</MarketingSectionTitle>
       <MarketingProse style={{ marginBottom: 0 }}>
         Questions about this policy? Email{" "}
-        <a href="mailto:privacy@vidyatrack.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
-          privacy@vidyatrack.com
+        <a href="mailto:vidyatrackai@gmail.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
+          privacy-policy
         </a>
         .
       </MarketingProse>

@@ -277,8 +277,8 @@ export default function RegisterPage() {
 
           <p style={{ fontSize: "12px", color: "var(--ink-500)", lineHeight: 1.5, marginBottom: "18px" }}>
             By registering you agree to VidyaTrack's{" "}
-            <a href="/terms" style={{ color: "var(--brand-primary)", textDecoration: "none" }}>Terms of Service</a>{" "}and{" "}
-            <a href="/privacy" style={{ color: "var(--brand-primary)", textDecoration: "none" }}>Privacy Policy</a>.
+            <a href="/terms-of-service" style={{ color: "var(--brand-primary)", textDecoration: "none" }}>Terms of Service</a>{" "}and{" "}
+            <a href="/privacy-policy" style={{ color: "var(--brand-primary)", textDecoration: "none" }}>Privacy Policy</a>.
           </p>
         </div>
       )}

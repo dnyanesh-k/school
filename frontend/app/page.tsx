@@ -184,40 +184,53 @@ function CommsVisual() {
 
 function HeroDashboardVisual() {
   return (
-    <>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid var(--ink-100)", textAlign: "left" }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--brand-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
-          🏫
-        </div>
-        <div>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--ink-900)" }}>
-            Sunrise Public School
+    <div style={{ textAlign: "left" }}>
+
+      {/* ── Top bar ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, paddingBottom: 12, borderBottom: "1px solid var(--ink-100)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--brand-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🏫</div>
+          <div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "var(--ink-900)", lineHeight: 1.2 }}>Sunrise Public School</div>
+            <div style={{ fontSize: 10, color: "var(--ink-400)" }}>Good morning, Rajesh 👋</div>
           </div>
-          <div style={{ fontSize: 12, color: "var(--ink-400)", marginTop: 2 }}>Today&apos;s dashboard</div>
         </div>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--brand-50)", border: "1px solid var(--brand-200)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>R</div>
       </div>
 
-      <div style={{ padding: "14px 16px", borderRadius: "var(--radius-md)", background: "var(--surface-1)", marginBottom: 12, textAlign: "left" }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-500)", marginBottom: 4 }}>Amount collected</div>
-        <div style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 800, color: "var(--ink-900)", letterSpacing: "-0.02em" }}>
-          ₹1,24,500
-        </div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "#15803d", marginTop: 4 }}>+₹12,500 collected today</div>
+      {/* ── 4-stat grid ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+        {[
+          { label: "Students", value: "342", sub: "6 added this month", color: "var(--brand-primary)", bg: "var(--brand-50)" },
+          { label: "Attendance", value: "91%", sub: "Today · Class 10", color: "#15803d", bg: "#dcfce7" },
+          { label: "Fees collected", value: "₹1.2L", sub: "This month", color: "#b45309", bg: "#fef3c7" },
+          { label: "Pending fees", value: "₹48K", sub: "18 defaulters", color: "#dc2626", bg: "#fef2f2" },
+        ].map((s) => (
+          <div key={s.label} style={{ background: s.bg, borderRadius: "var(--radius-md)", padding: "10px 12px" }}>
+            <div style={{ fontSize: 9, fontWeight: 600, color: s.color, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 3 }}>{s.label}</div>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 800, color: "var(--ink-900)", letterSpacing: "-0.02em", lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontSize: 9, color: "var(--ink-500)", marginTop: 3 }}>{s.sub}</div>
+          </div>
+        ))}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <NotifyCard
-          title="WhatsApp sent ✓"
-          body="Fee reminder sent to 24 parents"
-          tone="green"
-        />
-        <NotifyCard
-          title="Voice call done ✓"
-          body="8 parents confirmed payment"
-          tone="brand"
-        />
+      {/* ── Action items ── */}
+      <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-400)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Needs attention</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {[
+          { icon: "💬", text: "WhatsApp sent to 24 fee defaulters", tag: "Done", tagColor: "#15803d", tagBg: "#dcfce7" },
+          { icon: "📞", text: "AI voice call — 8 parents confirmed", tag: "Done", tagColor: "#15803d", tagBg: "#dcfce7" },
+          { icon: "📋", text: "Class 9-B attendance not marked", tag: "Pending", tagColor: "#b45309", tagBg: "#fef3c7" },
+        ].map((item) => (
+          <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "var(--surface-1)", borderRadius: "var(--radius-sm)" }}>
+            <span style={{ fontSize: 14, flexShrink: 0 }}>{item.icon}</span>
+            <span style={{ fontSize: 11, color: "var(--ink-700)", flex: 1, lineHeight: 1.3 }}>{item.text}</span>
+            <span style={{ fontSize: 9, fontWeight: 700, color: item.tagColor, background: item.tagBg, padding: "2px 7px", borderRadius: 999, flexShrink: 0 }}>{item.tag}</span>
+          </div>
+        ))}
       </div>
-    </>
+
+    </div>
   );
 }
 
@@ -231,7 +244,7 @@ const SHOWCASE = [
 /* ── Hero ───────────────────────────────────────────────────────────── */
 function Hero() {
   return (
-    <section style={{ padding: "80px 20px 40px", background: "var(--surface-0)", textAlign: "center", position: "relative" }}>
+    <section className="lp-hero-section" style={{ padding: "96px 20px 64px", background: "var(--surface-0)", textAlign: "center", position: "relative" }}>
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(79,70,229,0.08), transparent 65%)" }} />
 
       <div style={{ ...BOX, position: "relative", zIndex: 1 }}>
@@ -280,12 +293,12 @@ function Hero() {
           textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8,
           width: "100%", maxWidth: 280, justifyContent: "center", marginBottom: 8,
         }}>
-          Start 14-day trial <ArrowRight />
+          Get started <ArrowRight />
         </Link>
         <p className="lp-reveal lp-reveal-d4" style={{ fontSize: 11, color: "var(--ink-400)", marginBottom: 16 }}>No credit card · 5 min setup</p>
       </div>
 
-      <div className="lp-hero-preview" style={{ ...BOX, marginTop: 16 }}>
+      <div className="lp-hero-preview" style={{ ...BOX, marginTop: 44 }}>
         <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-400)", marginBottom: 8, letterSpacing: "0.04em", textTransform: "uppercase" }}>
           Live preview
         </p>
@@ -302,7 +315,7 @@ function Hero() {
 /* ── Visual showcase ─────────────────────────────────────────────────── */
 function VisualShowcase() {
   return (
-    <section id="features" style={{ padding: "40px 20px 44px", background: "var(--surface-1)", borderTop: "1px solid var(--ink-100)", overflow: "hidden" }}>
+    <section id="features" className="lp-section-gap" style={{ padding: "40px 20px 44px", background: "var(--surface-1)", borderTop: "1px solid var(--ink-100)", overflow: "hidden" }}>
       <div style={{ ...BOX, marginBottom: 24, textAlign: "center" }}>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ink-900)", marginBottom: 6 }}>
           Everything your school needs, in one app
@@ -335,7 +348,7 @@ function Steps() {
     { icon: "📱", label: "Go live" },
   ];
   return (
-    <section style={{ padding: "40px 20px", background: "var(--surface-0)", borderTop: "1px solid var(--ink-100)" }}>
+    <section className="lp-section-gap" style={{ padding: "40px 20px", background: "var(--surface-0)", borderTop: "1px solid var(--ink-100)" }}>
       <div style={BOX}>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, textAlign: "center", color: "var(--ink-900)", marginBottom: 20 }}>
           Up in 3 steps
@@ -363,7 +376,7 @@ function Steps() {
 /* ── Social proof ───────────────────────────────────────────────────── */
 function SocialProof() {
   return (
-    <section style={{ padding: "36px 20px", background: "var(--surface-1)", borderTop: "1px solid var(--ink-100)" }}>
+    <section className="lp-section-gap" style={{ padding: "36px 20px", background: "var(--surface-1)", borderTop: "1px solid var(--ink-100)" }}>
       <div style={{ ...BOX, ...CARD, textAlign: "center", padding: "22px 18px" }}>
         <div style={{ fontSize: 28, marginBottom: 8 }}>⭐⭐⭐⭐⭐</div>
         <p style={{ fontSize: 14, color: "var(--ink-700)", lineHeight: 1.6, marginBottom: 12 }}>
@@ -377,24 +390,31 @@ function SocialProof() {
 
 const PRICING_PLANS = [
   {
-    name: "Starter",
-    students: "Up to 150 students",
-    price: "999",
+    name: "Basic",
+    students: "Up to 200 students",
+    price: "499",
     features: ["Attendance", "Fees", "Results", "WhatsApp"],
     popular: false,
   },
   {
     name: "Growth",
     students: "Up to 500 students",
-    price: "2,999",
-    features: ["Everything in Starter", "AI voice calls", "Fee automation"],
+    price: "1,249",
+    features: ["Everything in Basic", "AI voice calls", "Fee automation"],
     popular: true,
+  },
+  {
+    name: "Pro",
+    students: "Up to 1,000 students",
+    price: "2,499",
+    features: ["Everything in Growth", "Priority support", "Analytics"],
+    popular: false,
   },
   {
     name: "School",
     students: "Up to 2,000 students",
-    price: "5,999",
-    features: ["Everything in Growth", "Priority support", "Multi-branch ready"],
+    price: "4,999",
+    features: ["Everything in Pro", "Multi-branch ready", "Dedicated support"],
     popular: false,
   },
 ] as const;
@@ -415,13 +435,13 @@ const trialButtonStyle = {
 /* ── Pricing ────────────────────────────────────────────────────────── */
 function Pricing() {
   return (
-    <section id="pricing" style={{ padding: "40px 20px", background: "var(--surface-0)", borderTop: "1px solid var(--ink-100)" }}>
+    <section id="pricing" className="lp-section-gap" style={{ padding: "40px 20px", background: "var(--surface-0)", borderTop: "1px solid var(--ink-100)" }}>
       <div style={BOX}>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, textAlign: "center", color: "var(--ink-900)", marginBottom: 8 }}>
           Pricing that grows with your school
         </h2>
         <p style={{ fontSize: 13, color: "var(--ink-500)", textAlign: "center", lineHeight: 1.55, marginBottom: 20 }}>
-          All plans start with a 14-day free trial. Pay based on student count after trial.
+          Simple pricing based on student count. No hidden fees.
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -461,16 +481,16 @@ function Pricing() {
                 ))}
               </ul>
               <Link href="/register" style={trialButtonStyle}>
-                Start 14-day trial
+                Get started
               </Link>
             </div>
           ))}
         </div>
 
         <p style={{ fontSize: 12, color: "var(--ink-400)", textAlign: "center", marginTop: 16, lineHeight: 1.5 }}>
-          Enterprise — 2,000+ students ·{" "}
-          <a href="mailto:sales@vidyatrack.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
-            Contact us
+          2,000+ students? ·{" "}
+          <a href="mailto:vidyatrackai@gmail.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
+            Contact us for custom pricing
           </a>
         </p>
       </div>
@@ -483,16 +503,16 @@ function FinalCTA() {
     <section style={{ padding: "48px 20px", background: "var(--ink-900)", textAlign: "center" }}>
       <div style={BOX}>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(22px, 5vw, 30px)", fontWeight: 800, color: "#fff", marginBottom: 10, letterSpacing: "-0.03em" }}>
-          Start your 14-day trial
+          Ready to run your school smarter?
         </h2>
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 20 }}>No credit card · Works on any phone · No training needed</p>
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 20 }}>Works on any phone · No training needed · Set up in 5 minutes</p>
         <Link href="/register" style={{
           fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600,
           padding: "14px 28px", borderRadius: "var(--radius-md)",
           background: "#fff", color: "var(--brand-primary)",
           textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8,
         }}>
-          Start 14-day trial <ArrowRight />
+          Get started <ArrowRight />
         </Link>
       </div>
     </section>
