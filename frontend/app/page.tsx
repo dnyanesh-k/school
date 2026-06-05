@@ -1,8 +1,42 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingNavbar } from "@/components/layout/MarketingNavbar";
 import { MarketingFooter } from "@/components/layout/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "VidyaTrack — School Management App with AI for Indian Schools",
+  description:
+    "VidyaTrack is a mobile-first school and coaching management app. Automate attendance, fee collection, WhatsApp reminders and AI voice calls to parents. Starts at ₹499/month.",
+  keywords: [
+    "school management software India",
+    "coaching management app",
+    "attendance management system",
+    "fee management software",
+    "WhatsApp school app",
+    "school ERP India",
+    "student management system",
+    "school app India",
+    "vidyatrack",
+  ],
+  openGraph: {
+    title: "VidyaTrack — Run Your School with AI",
+    description:
+      "Attendance, fees, WhatsApp reminders and AI voice calls — all from your phone. Starts at ₹499/month.",
+    url: "https://vidyatrack.com",
+    siteName: "VidyaTrack",
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VidyaTrack — School Management with AI",
+    description:
+      "Mobile-first school ERP for Indian schools and coaching institutes. Attendance, fees, WhatsApp & AI voice follow-ups.",
+  },
+  alternates: {
+    canonical: "https://vidyatrack.com",
+  },
+};
 const BOX = { maxWidth: 520, margin: "0 auto", width: "100%" } as const;
 const CARD = {
   background: "var(--surface-0)",

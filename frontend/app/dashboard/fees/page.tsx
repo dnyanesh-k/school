@@ -274,6 +274,7 @@ function DefaulterRow({ defaulter }: { defaulter: Defaulter }) {
         </span>
       </div>
 
+      {/* WhatsApp remind */}
       <a
         href={feeService.buildWhatsAppUrl(
           defaulter.parent_phone,
@@ -306,6 +307,29 @@ function DefaulterRow({ defaulter }: { defaulter: Defaulter }) {
           <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.526 5.855L.057 23.882l6.186-1.438A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.006-1.37l-.36-.214-3.722.865.93-3.617-.235-.372A9.818 9.818 0 0 1 2.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z" />
         </svg>
         <span className="vt-wa-label">Remind</span>
+      </a>
+
+      {/* Call button — opens phone dialer now; swap href to Exotel API later */}
+      <a
+        href={`tel:+91${defaulter.parent_phone}`}
+        aria-label={`Call parent of ${defaulter.student_name}`}
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minWidth: 44,
+          minHeight: 44,
+          padding: "0 10px",
+          background: "var(--brand-50)",
+          border: "1px solid var(--brand-200)",
+          borderRadius: "var(--radius-md)",
+          textDecoration: "none",
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.13 1.01.37 2 .72 2.96a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.12-1.12a2 2 0 012.11-.45c.96.35 1.95.59 2.96.72A2 2 0 0122 16.92z" />
+        </svg>
       </a>
     </div>
   );

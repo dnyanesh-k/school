@@ -18,13 +18,20 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "VidyaTrack",
-  description: "School management with AI — attendance, fees, WhatsApp & voice follow-ups",
+  title: {
+    default: "VidyaTrack — School Management App with AI",
+    template: "%s | VidyaTrack",
+  },
+  description: "Mobile-first school and coaching management app for India. Attendance, fees, WhatsApp reminders and AI voice follow-ups. Starts at ₹499/month.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "VidyaTrack",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
@@ -32,11 +39,53 @@ export const viewport: Viewport = {
   themeColor: "#4f46e5",
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://vidyatrack.com/#org",
+      name: "VidyaTrack",
+      url: "https://vidyatrack.com",
+      logo: "https://vidyatrack.com/icons/icon-512.png",
+      contactPoint: {
+        "@type": "ContactPoint",
+        email: "vidyatrackai@gmail.com",
+        contactType: "customer support",
+        areaServed: "IN",
+      },
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "VidyaTrack",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web, Android, iOS",
+      offers: {
+        "@type": "Offer",
+        price: "499",
+        priceCurrency: "INR",
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price: "499",
+          priceCurrency: "INR",
+          unitText: "MONTH",
+        },
+      },
+      description:
+        "Mobile-first school management app for Indian schools and coaching institutes. Attendance, fee collection, WhatsApp reminders and AI voice follow-ups.",
+    },
+  ],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${sora.variable} ${dmSans.variable}`}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body>
         <ToastProvider>
