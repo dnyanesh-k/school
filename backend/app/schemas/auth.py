@@ -10,7 +10,7 @@ class RegisterRequest(BaseModel):
     name: str
     email: EmailStr
     phone: str
-    address: str
+    address: Optional[str] = None
     city: str
     institute_type: str
     admin_name: str

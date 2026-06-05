@@ -16,7 +16,7 @@ class Institute(Base):
     email = Column(String, unique=True, nullable=False)
 
     phone = Column(String, nullable=False)
-    address = Column(String, nullable=False)
+    address = Column(String, nullable=True)
     city = Column(String, nullable=False)
 
     institute_type = Column(String, nullable=False)

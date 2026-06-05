@@ -3,6 +3,7 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ConflictError
 from app.core.soft_delete import soft_delete
 from app.models.holiday import Holiday
 
@@ -15,7 +16,7 @@ class HolidayRepository:
         existing = await self.get_by_date_including_deleted(holiday.holiday_date, holiday.institute_id)
         if existing:
             if not existing.is_deleted:
-                raise ValueError("Holiday already exists for this date")
+                raise ConflictError("Holiday already exists for this date")
             existing.reason = holiday.reason
             existing.is_deleted = False
             await self.db.commit()

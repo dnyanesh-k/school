@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService, getErrorMessage } from "@/services/authService";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Label } from "@/components/ui/Label";
 import { ErrorMsg } from "@/components/ui/ErrorMsg";
 import { Button } from "@/components/ui/Button";
@@ -216,17 +215,8 @@ export default function RegisterPage() {
       {step === 2 && (
         <div className="animate-slideIn">
           <div style={fieldGap}>
-            <Label required>City</Label>
-            <Select value={form.city} onChange={set("city")} placeholder="Select your city" error={errors.city}
-              options={[
-                { value: "Pune", label: "Pune" },
-                { value: "Sambhajinagar", label: "Sambhajinagar" },
-                { value: "Mumbai", label: "Mumbai" },
-                { value: "Nashik", label: "Nashik" },
-                { value: "Nagpur", label: "Nagpur" },
-                { value: "Other", label: "Other" },
-              ]}
-            />
+            <Label required>City / Town / Village</Label>
+            <Input placeholder="e.g. Pune, Wai, Nawalgarh" value={form.city} onChange={set("city")} error={errors.city} autoComplete="address-level2" />
             <ErrorMsg msg={errors.city} />
           </div>
           <div style={fieldGap}>
@@ -235,8 +225,8 @@ export default function RegisterPage() {
             <ErrorMsg msg={errors.phone} />
           </div>
           <div style={fieldGap}>
-            <Label>Address</Label>
-            <Input placeholder="Street, Area (optional)" value={form.address} onChange={set("address")} autoComplete="street-address" />
+            <Label>Address <span style={{ fontSize: 11, color: "var(--ink-400)", fontWeight: 400 }}>(optional)</span></Label>
+            <Input placeholder="Street, Area" value={form.address} onChange={set("address")} autoComplete="street-address" />
           </div>
         </div>
       )}

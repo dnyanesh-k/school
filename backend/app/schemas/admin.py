@@ -15,7 +15,7 @@ class InstituteOut(BaseModel):
     name: str
     email: str
     phone: str
-    address: str
+    address: Optional[str] = None
     city: str
     institute_type: str
     status: str
