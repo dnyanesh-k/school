@@ -225,7 +225,10 @@ export default function RegisterPage() {
             <ErrorMsg msg={errors.phone} />
           </div>
           <div style={fieldGap}>
-            <Label>Address <span style={{ fontSize: 11, color: "var(--ink-400)", fontWeight: 400 }}>(optional)</span></Label>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 6 }}>
+              <Label>Address</Label>
+              <span style={{ fontSize: 11, color: "var(--ink-400)", fontWeight: 400 }}>(optional)</span>
+            </div>
             <Input placeholder="Street, Area" value={form.address} onChange={set("address")} autoComplete="street-address" />
           </div>
         </div>
