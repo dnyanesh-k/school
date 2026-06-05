@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser
+from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.session import get_db
 from app.schemas.auth import (
@@ -44,7 +47,8 @@ async def login(
             "user_id": user.id,
             "institute_id": user.institute_id,
             "role": user.role,
-        }
+        },
+        expires_delta=timedelta(minutes=settings.access_token_expire_minutes),
     )
 
     return {

@@ -18,11 +18,16 @@ export default function LoginPage() {
   const [resetSuccess, setResetSuccess] = useState(false);
 
   useEffect(() => {
+    // Redirect already-authenticated users straight to their home
+    if (authService.isLoggedIn()) {
+      router.replace(authService.getHomeRoute());
+      return;
+    }
     if (sessionStorage.getItem("password_reset_success") === "1") {
       setResetSuccess(true);
       sessionStorage.removeItem("password_reset_success");
     }
-  }, []);
+  }, [router]);
 
   const [form, setForm]         = useState<LoginForm>({ email: "", password: "" });
   const [errors, setErrors]     = useState<FieldError>({});

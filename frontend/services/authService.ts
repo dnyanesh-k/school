@@ -20,7 +20,7 @@ export interface RegisterPayload {
   name: string;
   email: string;
   phone: string;
-  address: string;
+  address?: string;       // optional — matches backend schema
   city: string;
   institute_type: string;
   admin_name: string;

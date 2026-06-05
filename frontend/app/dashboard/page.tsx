@@ -8,7 +8,7 @@ import { StatCard, StatGrid } from "@/components/ui/StatCard";
 import { AlertCard } from "@/components/ui/AlertCard";
 import { QuickLinkCard } from "@/components/ui/QuickLinkCard";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
-import { authService } from "@/services/authService";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import {
   dashboardService,
   formatInr,
@@ -30,23 +30,22 @@ function firstName(fullName: string | null | undefined) {
 
 export default function DashboardHomePage() {
   const router = useRouter();
+  const { user: authUser, loading: authLoading } = useRequireAuth();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // Wait until auth is resolved; if not logged in, useRequireAuth redirects
+    if (authLoading) return;
+
     let active = true;
 
     (async () => {
       try {
-        const [data, user] = await Promise.all([
-          dashboardService.getSummary(),
-          authService.me().catch(() => null),
-        ]);
+        const data = await dashboardService.getSummary();
         if (!active) return;
         setSummary(data);
-        setUserName(user?.full_name ?? null);
       } catch (err) {
         if (active) setError(getErrorMessage(err, "Could not load dashboard summary"));
       } finally {
@@ -54,10 +53,8 @@ export default function DashboardHomePage() {
       }
     })();
 
-    return () => {
-      active = false;
-    };
-  }, []);
+    return () => { active = false; };
+  }, [authLoading]);
 
   const attentionCount =
     summary
@@ -71,16 +68,16 @@ export default function DashboardHomePage() {
       <TopBar title="Home" />
 
       <PageContent>
-        {loading && <DashboardSkeleton />}
+        {(loading || authLoading) && <DashboardSkeleton />}
 
-        {!loading && error && <div className="vt-error-banner">{error}</div>}
+        {!loading && !authLoading && error && <div className="vt-error-banner">{error}</div>}
 
-        {!loading && summary && (
+        {!loading && !authLoading && summary && (
           <div className="animate-fadeUp">
             <div className="vt-greeting">
               <h1 className="vt-greeting-title">
                 {getGreeting()}
-                {userName ? `, ${firstName(userName)}` : ""}
+                {authUser?.full_name ? `, ${firstName(authUser.full_name)}` : ""}
               </h1>
               <p className="vt-greeting-sub">
                 {attentionCount > 0

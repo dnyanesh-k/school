@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService, getErrorMessage } from "@/services/authService";
 import { Input } from "@/components/ui/Input";
@@ -108,6 +108,12 @@ function TypeCard({ value, label, description, icon, selected, onSelect }: {
 export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+
+  useEffect(() => {
+    if (authService.isLoggedIn()) {
+      router.replace(authService.getHomeRoute());
+    }
+  }, [router]);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [errors, setErrors] = useState<FieldError>({});
