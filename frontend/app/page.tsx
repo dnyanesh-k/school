@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { MarketingNavbar } from "@/components/layout/MarketingNavbar";
 import { MarketingFooter } from "@/components/layout/MarketingFooter";
-
 const BOX = { maxWidth: 520, margin: "0 auto", width: "100%" } as const;
 const CARD = {
   background: "var(--surface-0)",

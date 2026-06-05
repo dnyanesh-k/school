@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { authService } from "@/services/authService";
+import { InstallAppButton } from "@/components/common/InstallAppButton";
+
 
 interface NavAuthActionsProps {
   variant?: "marketing" | "auth";
@@ -52,9 +54,12 @@ export function NavAuthActions({
 
   if (loggedIn) {
     return (
-      <Link href={homeHref} style={primaryButtonStyle}>
-        {homeLabel}
-      </Link>
+      <>
+        <InstallAppButton compact />
+        <Link href={homeHref} style={primaryButtonStyle}>
+          {homeLabel}
+        </Link>
+      </>
     );
   }
 
@@ -76,6 +81,7 @@ export function NavAuthActions({
 
   return (
     <>
+      <InstallAppButton compact />
       <Link
         href="/login"
         style={{
