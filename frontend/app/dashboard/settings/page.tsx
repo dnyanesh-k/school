@@ -453,7 +453,7 @@ function SettingsPageContent() {
         let cancelled = false;
 
         (async () => {
-            if (activeTab === "team") {
+            if (activeTab === "team" || activeTab === "tests") {
                 setLoading(false);
                 return;
             }

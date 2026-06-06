@@ -6,7 +6,10 @@ from app.db.session import Base
 
 class Subject(Base):
     __tablename__ = "subjects"
-    __table_args__ = (Index("ix_subjects_class_id", "class_id"),)
+    __table_args__ = (
+        Index("ix_subjects_class_id", "class_id"),
+        Index("ix_subjects_class_deleted", "class_id", "is_deleted"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)

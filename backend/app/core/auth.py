@@ -37,7 +37,6 @@ from app.core.exceptions import AppException, ForbiddenError
 from app.core.roles import InstituteStatus, Role
 from app.db.session import get_db
 from app.models.user import User
-from app.repositories.institute_repository import InstituteRepository
 from app.repositories.user_repository import UserRepository
 
 # auto_error=False → missing token returns 401 (not FastAPI default 403)
@@ -111,7 +110,6 @@ require_platform_admin = require_roles(Role.PLATFORM_ADMIN)
 
 async def require_institute_user(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ) -> User:
     if current_user.role == Role.PLATFORM_ADMIN.value:
         raise ForbiddenError("Platform admin cannot access institute data here")
@@ -122,7 +120,8 @@ async def require_institute_user(
     if not current_user.institute_id:
         raise ForbiddenError("No institute linked to this account")
 
-    institute = await InstituteRepository(db).get_by_id(current_user.institute_id)
+    # institute is already eager-loaded by get_current_user via selectinload — no extra DB call
+    institute = current_user.institute
     if not institute:
         raise ForbiddenError("Institute not found")
 
@@ -133,7 +132,6 @@ async def require_institute_user(
     if institute.status == InstituteStatus.SUSPENDED.value:
         raise ForbiddenError("Your institute account is suspended")
 
-    current_user.institute = institute
     return current_user
 
 

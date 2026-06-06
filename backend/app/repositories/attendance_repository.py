@@ -66,11 +66,8 @@ class AttendanceRepository:
             for student_id in absent_student_ids
         ]
         self.db.add_all(records)
+        await self.db.flush()   # assigns DB-generated IDs without closing transaction
         await self.db.commit()
-
-        for item in records:
-            await self.db.refresh(item)
-
         return records
 
     async def get_for_students_between(
@@ -96,17 +93,27 @@ class AttendanceRepository:
         return list(result.scalars().all())
 
     async def upsert_batch(self, records: list[Attendance]) -> list[Attendance]:
-        saved: list[Attendance] = []
+        if not records:
+            return []
 
-        for record in records:
-            result = await self.db.execute(
-                select(Attendance).where(
-                    Attendance.student_id == record.student_id,
-                    Attendance.attendance_date == record.attendance_date,
-                )
+        # Single bulk fetch instead of N individual SELECTs
+        student_ids = [r.student_id for r in records]
+        dates = list({r.attendance_date for r in records})
+        result = await self.db.execute(
+            select(Attendance).where(
+                Attendance.student_id.in_(student_ids),
+                Attendance.attendance_date.in_(dates),
             )
-            existing = result.scalars().first()
+        )
+        existing_map: dict[tuple, Attendance] = {
+            (a.student_id, a.attendance_date): a
+            for a in result.scalars().all()
+        }
 
+        saved: list[Attendance] = []
+        for record in records:
+            key = (record.student_id, record.attendance_date)
+            existing = existing_map.get(key)
             if existing:
                 existing.status = record.status
                 existing.class_id = record.class_id

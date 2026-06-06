@@ -48,17 +48,25 @@ class TestScoreRepository:
         return {test_id: count for test_id, count in result.all()}
 
     async def upsert_batch(self, scores: list[TestScore]) -> list[TestScore]:
-        saved: list[TestScore] = []
+        if not scores:
+            return []
 
-        for score in scores:
-            result = await self.db.execute(
-                select(TestScore).where(
-                    TestScore.test_id == score.test_id,
-                    TestScore.student_id == score.student_id,
-                )
+        # Single bulk fetch instead of N individual SELECTs
+        test_id = scores[0].test_id
+        student_ids = [s.student_id for s in scores]
+        result = await self.db.execute(
+            select(TestScore).where(
+                TestScore.test_id == test_id,
+                TestScore.student_id.in_(student_ids),
             )
-            existing = result.scalars().first()
+        )
+        existing_map: dict[int, TestScore] = {
+            ts.student_id: ts for ts in result.scalars().all()
+        }
 
+        saved: list[TestScore] = []
+        for score in scores:
+            existing = existing_map.get(score.student_id)
             if existing:
                 existing.marks_obtained = score.marks_obtained
                 existing.remarks = score.remarks

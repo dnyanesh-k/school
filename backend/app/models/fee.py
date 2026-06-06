@@ -11,7 +11,7 @@ class FeePlan(Base):
     student_id = Column(Integer, ForeignKey("students.id"), unique=True, nullable=False, index=True)
     total_amount = Column(Integer, nullable=False)
     paid_amount = Column(Integer, default=0, nullable=False)
-    is_deleted = Column(Boolean, default=False, nullable=False)
+    is_deleted = Column(Boolean, default=False, nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     student = relationship("Student", back_populates="fee_plan")
@@ -25,7 +25,10 @@ class FeePlan(Base):
 
 class Installment(Base):
     __tablename__ = "installments"
-    __table_args__ = (Index("ix_installments_status_due", "status", "due_date"),)
+    __table_args__ = (
+        Index("ix_installments_status_due", "status", "due_date"),
+        Index("ix_installments_plan_deleted", "fee_plan_id", "is_deleted"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     fee_plan_id = Column(Integer, ForeignKey("fee_plans.id"), nullable=False, index=True)

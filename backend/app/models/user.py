@@ -1,6 +1,6 @@
 # models/user.py
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.core.roles import Role
@@ -9,6 +9,7 @@ from app.db.session import Base
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (Index("ix_users_institute_deleted", "institute_id", "is_deleted"),)
 
     id = Column(Integer, primary_key=True, index=True)
 

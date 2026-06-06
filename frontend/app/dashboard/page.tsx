@@ -8,7 +8,7 @@ import { StatCard, StatGrid } from "@/components/ui/StatCard";
 import { AlertCard } from "@/components/ui/AlertCard";
 import { QuickLinkCard } from "@/components/ui/QuickLinkCard";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
-import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useInstitute } from "@/contexts/InstituteContext";
 import {
   dashboardService,
   formatInr,
@@ -30,13 +30,13 @@ function firstName(fullName: string | null | undefined) {
 
 export default function DashboardHomePage() {
   const router = useRouter();
-  const { user: authUser, loading: authLoading } = useRequireAuth();
+  const { user: authUser, loading: authLoading } = useInstitute();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Wait until auth is resolved; if not logged in, useRequireAuth redirects
+    // Wait until auth is resolved; redirect handled by InstituteProvider
     if (authLoading) return;
 
     let active = true;

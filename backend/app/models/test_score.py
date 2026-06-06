@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, UniqueConstraint, func
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
@@ -8,6 +8,7 @@ class TestScore(Base):
     __tablename__ = "test_scores"
     __table_args__ = (
         UniqueConstraint("test_id", "student_id", name="uq_test_student_score"),
+        Index("ix_test_scores_test_deleted", "test_id", "is_deleted"),
     )
 
     id = Column(Integer, primary_key=True, index=True)
