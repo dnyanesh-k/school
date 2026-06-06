@@ -46,7 +46,7 @@ export function NavAuthActions({
   if (!ready) {
     return (
       <div
-        style={{ width: variant === "marketing" ? 64 : 72, height: 36 }}
+        style={{ width: variant === "marketing" ? 140 : 72, height: 36 }}
         aria-hidden="true"
       />
     );
@@ -82,22 +82,26 @@ export function NavAuthActions({
     );
   }
 
-  // Guest + marketing: Sign in as a soft outlined pill
+  // Guest + marketing: Install + Sign in
   return (
-    <Link
-      href="/login"
-      style={{
-        fontSize: 12,
-        fontWeight: 600,
-        color: "var(--ink-700)",
-        textDecoration: "none",
-        padding: "7px 14px",
-        border: "1px solid var(--ink-300)",
-        borderRadius: "var(--radius-md)",
-        background: "var(--surface-0)",
-      }}
-    >
-      Sign in
-    </Link>
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <InstallAppButton compact />
+      <Link
+        href="/login"
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: "var(--ink-700)",
+          textDecoration: "none",
+          padding: "7px 14px",
+          border: "1px solid var(--ink-300)",
+          borderRadius: "var(--radius-md)",
+          background: "var(--surface-0)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Sign in
+      </Link>
+    </div>
   );
 }
