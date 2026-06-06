@@ -28,24 +28,24 @@ services:
     depends_on:
       - postgres
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: school_api
-    restart: on-failure
-    ports:
-      - "8000:8000"
-    environment:
-      # Overrides anything in .env — always points to local postgres container
-      DATABASE_URL: postgresql+asyncpg://postgres:root@postgres:5432/school_db
-      DEBUG: "true"
-    env_file:
-      - path: .env
-        required: false      # won't error if .env missing; SECRET_KEY etc still needed
-    depends_on:
-      postgres:
-        condition: service_healthy
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: school_api
+  #   restart: on-failure
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     # Overrides anything in .env — always points to local postgres container
+  #     DATABASE_URL: postgresql+asyncpg://postgres:root@postgres:5432/school_db
+  #     DEBUG: "true"
+  #   env_file:
+  #     - path: .env
+  #       required: false      # won't error if .env missing; SECRET_KEY etc still needed
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
 
 volumes:
   postgres_data:

@@ -444,7 +444,7 @@ const PRICING_PLANS = [
     students: "Up to 1,000 students",
     price: "2,499",
     features: ["Everything in Growth", "Priority support", "Analytics"],
-    popular: false,
+    popular: true,
   },
   {
     name: "School",
