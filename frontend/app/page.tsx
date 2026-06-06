@@ -331,7 +331,7 @@ function Hero() {
         }}>
           Get started <ArrowRight />
         </Link>
-        <p className="lp-reveal lp-reveal-d4" style={{ fontSize: 11, color: "var(--ink-400)", marginBottom: 16 }}>No credit card · 5 min setup</p>
+        <p className="lp-reveal lp-reveal-d4" style={{ fontSize: 11, color: "var(--ink-600)", marginBottom: 16 }}>5 min setup</p>
       </div>
 
       <div className="lp-hero-preview" style={{ ...BOX, marginTop: 44 }}>
@@ -467,6 +467,9 @@ const trialButtonStyle = {
   fontSize: 13,
   fontWeight: 600,
 };
+const PHONE = "919096100340"; 
+const PHONE_DISPLAY = "+91 90961 00340";
+const WA_MESSAGE = encodeURIComponent("Hi, I'm interested in VidyaTrack for my institute. Can you give me a quick demo?");
 
 /* ── Pricing ────────────────────────────────────────────────────────── */
 function Pricing() {
@@ -523,9 +526,9 @@ function Pricing() {
           ))}
         </div>
 
-        <p style={{ fontSize: 12, color: "var(--ink-400)", textAlign: "center", marginTop: 16, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12, color: "var(--ink-600)", textAlign: "center", marginTop: 16, lineHeight: 1.5 }}>
           2,000+ students? ·{" "}
-          <a href="mailto:vidyatrackai@gmail.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
+          <a href={`tel:+${PHONE}`} style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
             Contact us for custom pricing
           </a>
         </p>
@@ -539,7 +542,7 @@ function FinalCTA() {
     <section style={{ padding: "48px 20px", background: "var(--ink-900)", textAlign: "center" }}>
       <div style={BOX}>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(22px, 5vw, 30px)", fontWeight: 800, color: "#fff", marginBottom: 10, letterSpacing: "-0.03em" }}>
-          Ready to run your school smarter?
+          Ready to run your institute smarter?
         </h2>
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 20 }}>Works on any phone · No training needed · Set up in 5 minutes</p>
         <Link href="/register" style={{
@@ -554,10 +557,6 @@ function FinalCTA() {
     </section>
   );
 }
-
-const PHONE = "919096100340"; 
-const PHONE_DISPLAY = "+91 90961 00340";
-const WA_MESSAGE = encodeURIComponent("Hi, I'm interested in VidyaTrack for my institute. Can you give me a quick demo?");
 
 function TalkToUs() {
   return (

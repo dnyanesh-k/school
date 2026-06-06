@@ -32,7 +32,7 @@ export function MarketingFooter() {
         </nav>
 
         <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>
-          School management with AI · Attendance, fees, WhatsApp & voice follow-ups
+          Manage with AI · Attendance, fees, WhatsApp & voice follow-ups
         </p>
 
         <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)" }}>
