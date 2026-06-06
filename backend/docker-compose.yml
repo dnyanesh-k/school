@@ -11,6 +11,10 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -20,9 +24,26 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@school.com
       PGADMIN_DEFAULT_PASSWORD: rootpassword
     ports:
-      - "5050:80"
+      - "5050:80"       # open http://localhost:5050
     depends_on:
       - postgres
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: school_api
+    restart: on-failure
+    ports:
+      - "8000:8000"
+    environment:
+      # Overrides .env — points to the local postgres container
+      DATABASE_URL: postgresql+asyncpg://postgres:root@postgres:5432/school_db
+    env_file:
+      - .env               # loads SECRET_KEY, SMTP_*, etc from your local .env
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
