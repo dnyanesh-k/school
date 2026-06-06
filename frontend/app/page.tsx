@@ -284,7 +284,7 @@ function Hero() {
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(79,70,229,0.08), transparent 65%)" }} />
 
       <div style={{ ...BOX, position: "relative", zIndex: 1 }}>
-        <div className="lp-reveal" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", background: "var(--brand-50)", border: "1px solid var(--brand-200)", borderRadius: "var(--radius-full)", marginBottom: 16 }}>
+        <div className="lp-reveal" style={{ display: "inline-flex", alignItems: "center", marginBottom: 16 }}>
           {/* <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand-primary)" }} /> */}
           {/* <span style={{ fontSize: 11, fontWeight: 600, color: "var(--brand-primary)" }}>Made for India</span> */}
         </div>
@@ -563,9 +563,9 @@ function TalkToUs() {
   return (
     <section className="lp-section-gap" style={{ background: "var(--surface-1)" }}>
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 20px", textAlign: "center" }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--brand-primary)", textTransform: "uppercase", marginBottom: 8 }}>
+        {/* <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--brand-primary)", textTransform: "uppercase", marginBottom: 8 }}>
           Talk to us first
-        </p>
+        </p> */}
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(22px, 5vw, 30px)", fontWeight: 800, color: "var(--ink-900)", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
           Questions before signing up?
         </h2>
