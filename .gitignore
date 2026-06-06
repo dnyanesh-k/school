@@ -10,6 +10,7 @@ htmlcov/
 .env
 .venv
 env/
+*.pem
 venv/
 pip-log.txt
 pip-delete-this-directory.txt

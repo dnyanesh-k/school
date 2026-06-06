@@ -51,7 +51,9 @@ docker --version
 ```bash
 git clone https://github.com/YOUR_ORG/YOUR_REPO.git ~/app
 ```
-
+```bash
+git clone https://github.com/dnyanesh-k/school.git
+```
 ### 5. Configure .env
 
 ```bash
@@ -93,7 +95,7 @@ curl http://localhost:8000/health
 sudo tee /etc/nginx/sites-available/vidyatrack << 'EOF'
 server {
     listen 80;
-    server_name api.vidyatrack.com;
+    server_name api.vidyatrackai.com;
 
     location / {
         proxy_pass         http://127.0.0.1:8000;
@@ -125,16 +127,16 @@ Wait 5-10 min for propagation.
 ### 9. SSL (free, auto-renewing)
 
 ```bash
-sudo certbot --nginx -d api.vidyatrack.com
+sudo certbot --nginx -d api.vidyatrackai.com
 ```
 
-Test: `https://api.vidyatrack.com/health`
+Test: `https://api.vidyatrackai.com/health`
 
 ### 10. Update Vercel frontend env
 
 Vercel → Project settings → Environment Variables:
 ```
-NEXT_PUBLIC_API_URL = https://api.vidyatrack.com/api/v1
+NEXT_PUBLIC_API_URL = https://api.vidyatrackai.com/api/v1
 ```
 
 Redeploy frontend.
