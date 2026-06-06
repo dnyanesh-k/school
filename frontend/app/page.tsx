@@ -17,6 +17,8 @@ export const metadata: Metadata = {
     "student management system",
     "school app India",
     "vidyatrack",
+    "coacing classes manage",
+    "coacing classes app"
   ],
   openGraph: {
     title: "VidyaTrack — Run Your School with AI",
@@ -284,7 +286,7 @@ function Hero() {
       <div style={{ ...BOX, position: "relative", zIndex: 1 }}>
         <div className="lp-reveal" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", background: "var(--brand-50)", border: "1px solid var(--brand-200)", borderRadius: "var(--radius-full)", marginBottom: 16 }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand-primary)" }} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--brand-primary)" }}>School app · Made for India</span>
+          {/* <span style={{ fontSize: 11, fontWeight: 600, color: "var(--brand-primary)" }}>Made for India</span> */}
         </div>
 
         <h1 className="lp-reveal lp-reveal-d1" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(34px, 9vw, 50px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-0.04em", color: "var(--ink-900)", marginBottom: 12 }}>
@@ -553,6 +555,63 @@ function FinalCTA() {
   );
 }
 
+const PHONE = "9096100340"; 
+const PHONE_DISPLAY = "+91 90961 00340";
+const WA_MESSAGE = encodeURIComponent("Hi, I'm interested in VidyaTrack for my institute. Can you give me a quick demo?");
+
+function TalkToUs() {
+  return (
+    <section className="lp-section-gap" style={{ background: "var(--surface-1)" }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 20px", textAlign: "center" }}>
+        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--brand-primary)", textTransform: "uppercase", marginBottom: 8 }}>
+          Talk to us first
+        </p>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(22px, 5vw, 30px)", fontWeight: 800, color: "var(--ink-900)", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
+          Questions before signing up?
+        </h2>
+        <p style={{ fontSize: 14, color: "var(--ink-500)", marginBottom: 28 }}>
+          Call or WhatsApp us — we'll show you exactly how VidyaTrack works for your school.
+        </p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 48 }}>
+          <a
+            href={`https://wa.me/${PHONE}?text=${WA_MESSAGE}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "#25d366", color: "#fff",
+              fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
+              padding: "12px 20px", borderRadius: "var(--radius-md)",
+              textDecoration: "none", boxShadow: "0 2px 12px rgba(37,211,102,0.3)",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.532 5.849L.057 23.571a.5.5 0 00.614.614l5.723-1.474A11.943 11.943 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.92 0-3.72-.504-5.28-1.384l-.378-.219-3.924 1.011 1.012-3.924-.22-.378A9.951 9.951 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+            </svg>
+            WhatsApp {PHONE_DISPLAY}
+          </a>
+          <a
+            href={`tel:+${PHONE}`}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "var(--surface-0)", color: "var(--ink-800)",
+              fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
+              padding: "12px 20px", borderRadius: "var(--radius-md)",
+              textDecoration: "none", border: "1px solid var(--ink-200)",
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.13 1.01.37 2 .72 2.96a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.12-1.12a2 2 0 012.11-.45c.96.35 1.95.59 2.96.72A2 2 0 0122 16.92z"/>
+            </svg>
+            Call us
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage() {
   return (
     <div style={{ overflowX: "hidden" }}>
@@ -562,6 +621,7 @@ export default function LandingPage() {
       <Steps />
       <SocialProof />
       <Pricing />
+      <TalkToUs />
       <FinalCTA />
       <MarketingFooter />
     </div>

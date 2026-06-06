@@ -32,7 +32,7 @@ export default function TermsPage() {
       <MarketingSectionTitle>Contact</MarketingSectionTitle>
       <MarketingProse style={{ marginBottom: 0 }}>
         Questions about these terms? Email{" "}
-        <a href="mailto:vidyatracksi@gmail.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
+        <a href="mailto:vidyatrackai@gmail.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
           legal
         </a>
         .
