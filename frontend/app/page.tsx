@@ -285,7 +285,7 @@ function Hero() {
 
       <div style={{ ...BOX, position: "relative", zIndex: 1 }}>
         <div className="lp-reveal" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", background: "var(--brand-50)", border: "1px solid var(--brand-200)", borderRadius: "var(--radius-full)", marginBottom: 16 }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand-primary)" }} />
+          {/* <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand-primary)" }} /> */}
           {/* <span style={{ fontSize: 11, fontWeight: 600, color: "var(--brand-primary)" }}>Made for India</span> */}
         </div>
 
