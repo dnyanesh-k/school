@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MarketingPageLayout, MarketingProse, MarketingSectionTitle } from "@/components/layout/MarketingPageLayout";
 
-const PHONE = "9096100340"; // replace with real number
+const PHONE = "919096100340";
 const PHONE_DISPLAY = "+91 90961 00340";
 const WA_MESSAGE = encodeURIComponent("Hi, I'm interested in VidyaTrack for my institute. Can you give me a quick demo?");
 

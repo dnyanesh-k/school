@@ -555,7 +555,7 @@ function FinalCTA() {
   );
 }
 
-const PHONE = "9096100340"; 
+const PHONE = "919096100340"; 
 const PHONE_DISPLAY = "+91 90961 00340";
 const WA_MESSAGE = encodeURIComponent("Hi, I'm interested in VidyaTrack for my institute. Can you give me a quick demo?");
 
