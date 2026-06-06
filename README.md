@@ -3,7 +3,7 @@
 Mobile-first school management POC for Indian schools and coaching institutes. Institutes register, get approved by a platform admin, then run attendance, fees, tests, and parent follow-ups from a phone-friendly dashboard.
 
 **Marketing name:** VidyaTrack  
-**Repo folder:** `demo-poc/school`
+**Repo root:** `school/` (git root)
 
 ---
 
@@ -276,6 +276,19 @@ flowchart TB
 2. JWT (30-day expiry) stored in browser localStorage; dashboard routes call `/api/v1/*` with `Authorization: Bearer`.
 3. Tables created on first startup via `create_all`; Alembic tracks all subsequent schema changes.
 4. **Parent automation:** fee defaulters, absent streaks, and test scores trigger **WhatsApp reminders** or **AI voice follow-ups** to the parent’s phone on file.
+
+---
+
+### Deployment
+
+| Layer | Platform | Notes |
+|-------|----------|-------|
+| Frontend | Vercel | Auto-deploy on push to `main` |
+| Backend | AWS EC2 t4g.small (ARM64) | Docker + GitHub Actions CI/CD |
+| Database | Supabase (PostgreSQL) | Pgbouncer pooler, port 6543 |
+
+**CI/CD:** Push to `main` -> GitHub Actions SSHes into EC2 -> `git pull` -> Alembic migrations -> Docker build (ARM64 native) -> `docker compose up -d`.
+See `.github/workflows/deploy-backend.yml` and `backend/deploy/README.md`.
 
 ---
 

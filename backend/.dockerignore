@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.*
+!.env.example
+.git/
+.gitignore
+deploy/
+docs/
+*.md
+alembic/versions/*.pyc

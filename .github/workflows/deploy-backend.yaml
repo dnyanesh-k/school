@@ -1,0 +1,49 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"   # only trigger when backend changes
+
+jobs:
+  deploy:
+    name: Build & deploy on EC2
+    runs-on: ubuntu-latest          # CI runner (just SSH agent — build happens on EC2)
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+
+            echo "=== Pull latest code ==="
+            git -C ~/app pull origin main
+
+            echo "=== Move to backend ==="
+            cd ~/app/backend
+
+            echo "=== Run Alembic migrations ==="
+            docker compose -f docker-compose.prod.yml run --rm \
+              -e DATABASE_URL="$(grep DATABASE_URL .env | cut -d= -f2-)" \
+              api \
+              sh -c "alembic upgrade head"
+
+            echo "=== Build image on EC2 (ARM64 native) ==="
+            docker compose -f docker-compose.prod.yml build
+
+            echo "=== Restart with zero-downtime swap ==="
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "=== Remove old images ==="
+            docker image prune -f
+
+            echo "=== Health check ==="
+            sleep 5
+            curl -sf http://localhost:8000/health && echo " Backend healthy" || (echo " Health check failed"; exit 1)

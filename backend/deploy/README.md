@@ -1,143 +1,200 @@
-# VidyaTrack — EC2 Deployment Guide
+# VidyaTrack — EC2 Deployment Guide (Docker + GitHub Actions CI/CD)
 
-## 1. Launch EC2 instance (AWS Console)
+## Stack
+- **Instance:** AWS t4g.small (ARM64 Graviton2 — 2 vCPU, 2 GB RAM)
+- **Runtime:** Docker + docker-compose
+- **Reverse proxy:** Nginx
+- **SSL:** Let's Encrypt (certbot)
+- **CI/CD:** GitHub Actions → SSH into EC2 → build & deploy
 
-- AMI: **Ubuntu 22.04 LTS**
-- Type: **t3.micro** (free tier / $50 credit)
+---
+
+## First-time EC2 setup
+
+### 1. Launch EC2 instance (AWS Console)
+
+- AMI: **Ubuntu 22.04 LTS (ARM64)**  ← must be ARM, not x86
+- Type: **t4g.small**
 - Storage: 20 GB gp3
-- Security group — open these ports:
+- Security group — open ports:
   - 22   (SSH — your IP only)
   - 80   (HTTP — 0.0.0.0/0)
   - 443  (HTTPS — 0.0.0.0/0)
-- Download the .pem key file
+- Download the .pem key
 
-## 2. SSH into the instance
+### 2. SSH into the instance
 
 ```bash
 chmod 400 your-key.pem
 ssh -i your-key.pem ubuntu@<EC2-PUBLIC-IP>
 ```
 
-## 3. Set up the server
+### 3. Install Docker + Nginx + Git
 
 ```bash
-# Upload setup script (from your local machine):
-scp -i your-key.pem deploy/setup.sh ubuntu@<EC2-PUBLIC-IP>:~/
+sudo apt update && sudo apt upgrade -y
 
-# SSH in and run:
-chmod +x setup.sh && ./setup.sh
+# Docker
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker ubuntu
+newgrp docker   # apply without logout
 
-# Clone repo (first time):
+# Nginx + Certbot
+sudo apt install -y nginx certbot python3-certbot-nginx git
+
+# Verify
+docker --version
+```
+
+### 4. Clone repository
+
+```bash
 git clone https://github.com/YOUR_ORG/YOUR_REPO.git ~/app
 ```
 
-## 4. Configure .env
+### 5. Configure .env
 
 ```bash
-cd ~/app/demo-poc/school/backend
+cd ~/app/backend
+cp .env.example .env
 nano .env
 ```
 
 Fill in:
 - `DATABASE_URL` — Supabase pooler URL (port 6543)
-- `SECRET_KEY` — run `openssl rand -hex 32`
-- `ALLOWED_ORIGINS` — `["https://your-vercel-app.vercel.app"]`
+- `SECRET_KEY` — `openssl rand -hex 32`
+- `ALLOWED_ORIGINS` — `["https://your-app.vercel.app"]`
 - `SMTP_*` — Gmail app password
-- `DB_POOL_SIZE=3`, `DB_MAX_OVERFLOW=2`  (Supabase free tier)
+- `DB_POOL_SIZE=3` / `DB_MAX_OVERFLOW=2` (Supabase free tier)
+- `DEBUG=false`
 
-## 5. Install systemd service
+### 6. First build & start
 
 ```bash
-sudo cp ~/app/demo-poc/school/backend/deploy/vidyatrack.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable vidyatrack
-sudo systemctl start vidyatrack
+cd ~/app/backend
 
-# Check it's running:
-sudo systemctl status vidyatrack
+# Build image (first time — takes 2-3 min)
+docker compose -f docker-compose.prod.yml build
+
+# Run Alembic migrations
+docker compose -f docker-compose.prod.yml run --rm api alembic upgrade head
+
+# Start the API
+docker compose -f docker-compose.prod.yml up -d
+
+# Verify
+docker compose -f docker-compose.prod.yml ps
 curl http://localhost:8000/health
 ```
 
-## 6. Set up Nginx
+### 7. Set up Nginx
 
 ```bash
-sudo cp ~/app/demo-poc/school/backend/deploy/nginx.conf /etc/nginx/sites-available/vidyatrack
+sudo tee /etc/nginx/sites-available/vidyatrack << 'EOF'
+server {
+    listen 80;
+    server_name api.vidyatrack.com;
+
+    location / {
+        proxy_pass         http://127.0.0.1:8000;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+}
+EOF
+
 sudo ln -s /etc/nginx/sites-available/vidyatrack /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-## 7. Point your domain (Hostinger DNS)
+### 8. DNS — Hostinger
 
-Add an A record in Hostinger DNS:
+Add an A record:
 ```
-Type: A
-Name: api          (creates api.vidyatrack.com)
+Type:  A
+Name:  api
 Value: <EC2-PUBLIC-IP>
-TTL: 300
+TTL:   300
 ```
 
-Wait 5–10 minutes for DNS to propagate.
+Wait 5-10 min for propagation.
 
-## 8. SSL certificate (free via Let's Encrypt)
+### 9. SSL (free, auto-renewing)
 
 ```bash
 sudo certbot --nginx -d api.vidyatrack.com
-# Follow prompts — choose redirect HTTP to HTTPS
 ```
 
-Certbot auto-renews. Test: `https://api.vidyatrack.com/health`
+Test: `https://api.vidyatrack.com/health`
 
-## 9. Update frontend env on Vercel
+### 10. Update Vercel frontend env
 
-In Vercel project settings → Environment Variables:
+Vercel → Project settings → Environment Variables:
 ```
 NEXT_PUBLIC_API_URL = https://api.vidyatrack.com/api/v1
 ```
 
-Redeploy the frontend.
+Redeploy frontend.
 
-## 10. Verify end-to-end
+---
 
-```
-https://api.vidyatrack.com/health      → {"status":"ok"}
-https://api.vidyatrack.com/docs        → Swagger (DEBUG=true only)
+## CI/CD setup (GitHub Actions)
+
+After the first manual deploy, all future pushes to `main` that touch the backend auto-deploy via `.github/workflows/deploy-backend.yml`.
+
+### Add GitHub Secrets
+
+In your GitHub repo → Settings → Secrets and variables → Actions:
+
+| Secret | Value |
+|--------|-------|
+| `EC2_HOST` | Your EC2 public IP or domain |
+| `EC2_SSH_KEY` | Contents of your `.pem` file (the whole text) |
+
+### How the pipeline works
+
+Every `git push` to `main` (that touches `backend/`):
+1. GitHub runner SSHes into EC2
+2. `git pull` latest code
+3. Alembic migrations run inside a temporary container
+4. Docker image rebuilt on EC2 (native ARM64 — no QEMU needed)
+5. `docker compose up -d` with zero-downtime swap
+6. Old images pruned
+7. Health check confirms API is up
+
+---
+
+## Day-to-day operations
+
+```bash
+# View live logs
+docker compose -f docker-compose.prod.yml logs -f
+
+# Restart manually
+docker compose -f docker-compose.prod.yml restart api
+
+# Open a shell in the container
+docker compose -f docker-compose.prod.yml exec api bash
+
+# Run migrations manually
+docker compose -f docker-compose.prod.yml exec api alembic upgrade head
+
+# Check container status
+docker compose -f docker-compose.prod.yml ps
 ```
 
 ---
 
-## Subsequent deployments (every code push)
+## Cost estimate (t4g.small)
 
-```bash
-# Upload the redeploy script once:
-scp -i your-key.pem deploy/redeploy.sh ubuntu@<EC2-IP>:~/
-chmod +x ~/redeploy.sh
+| Item | Monthly cost |
+|------|-------------|
+| t4g.small (on-demand) | ~$14/month |
+| 20 GB gp3 storage | ~$1.6/month |
+| Data transfer (light) | ~$1/month |
+| **Total** | **~$16-17/month** |
 
-# Then every time you push new code, just SSH in and run:
-./redeploy.sh
-```
-
-`redeploy.sh` does in order:
-1. `git pull` — latest code
-2. `pip install` — picks up any new packages
-3. `alembic upgrade head` — applies any new DB migrations
-4. `systemctl restart vidyatrack` — restarts the API
-5. Health check — confirms the server came back up
-
----
-
-## Useful commands (day-to-day)
-
-```bash
-# Live logs (stream)
-sudo journalctl -u vidyatrack -f
-
-# Last 50 log lines
-sudo journalctl -u vidyatrack -n 50
-
-# Check service status
-sudo systemctl status vidyatrack
-
-# Manual restart
-sudo systemctl restart vidyatrack
-```
+With $200 credit → ~11-12 months free.
