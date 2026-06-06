@@ -32,8 +32,8 @@ export default function TermsPage() {
       <MarketingSectionTitle>Contact</MarketingSectionTitle>
       <MarketingProse style={{ marginBottom: 0 }}>
         Questions about these terms? Email{" "}
-        <a href="mailto:legal@vidyatrack.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
-          legal@vidyatrack.com
+        <a href="mailto:vidyatracksi@gmail.com" style={{ color: "var(--brand-primary)", fontWeight: 600, textDecoration: "none" }}>
+          legal
         </a>
         .
       </MarketingProse>

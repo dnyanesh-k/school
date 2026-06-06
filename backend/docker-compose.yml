@@ -37,10 +37,12 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Overrides .env — points to the local postgres container
+      # Overrides anything in .env — always points to local postgres container
       DATABASE_URL: postgresql+asyncpg://postgres:root@postgres:5432/school_db
+      DEBUG: "true"
     env_file:
-      - .env               # loads SECRET_KEY, SMTP_*, etc from your local .env
+      - path: .env
+        required: false      # won't error if .env missing; SECRET_KEY etc still needed
     depends_on:
       postgres:
         condition: service_healthy

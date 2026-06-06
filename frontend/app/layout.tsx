@@ -44,10 +44,10 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://vidyatrack.com/#org",
+      "@id": "https://vidyatrackai.com/#org",
       name: "VidyaTrack",
-      url: "https://vidyatrack.com",
-      logo: "https://vidyatrack.com/icons/icon-512.png",
+      url: "https://vidyatrackai.com",
+      logo: "https://vidyatrackai.com/icons/icon-512.png",
       contactPoint: {
         "@type": "ContactPoint",
         email: "vidyatrackai@gmail.com",

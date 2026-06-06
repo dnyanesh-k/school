@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/dashboard/", "/admin/", "/login", "/register"],
     },
-    sitemap: "https://vidyatrack.com/sitemap.xml",
+    sitemap: "https://vidyatrackais.com/sitemap.xml",
   };
 }

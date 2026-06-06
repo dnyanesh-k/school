@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     title: "VidyaTrack — Run Your School with AI",
     description:
       "Attendance, fees, WhatsApp reminders and AI voice calls — all from your phone. Starts at ₹499/month.",
-    url: "https://vidyatrack.com",
+    url: "https://vidyatrackai.com",
     siteName: "VidyaTrack",
     locale: "en_IN",
     type: "website",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
       "Mobile-first school ERP for Indian schools and coaching institutes. Attendance, fees, WhatsApp & AI voice follow-ups.",
   },
   alternates: {
-    canonical: "https://vidyatrack.com",
+    canonical: "https://vidyatrackai.com",
   },
 };
 const BOX = { maxWidth: 520, margin: "0 auto", width: "100%" } as const;

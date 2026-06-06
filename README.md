@@ -358,35 +358,47 @@ school/
 
 ## Prerequisites
 
-- **Python** 3.11+
-- **Node.js** 20+ (or Bun)
-- **PostgreSQL** 14+
+- **Docker** (local dev — runs postgres + pgadmin + api together)
+- **Node.js** 20+ (frontend)
 
 ---
 
 ## Setup
 
-### 1. Database
-
-Create a PostgreSQL database:
-
-```sql
-CREATE DATABASE school_db;
-```
-
-### 2. Backend
+### 1. Backend (Docker — runs postgres + pgadmin + api)
 
 ```bash
 cd backend
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
-
-pip install -r requirements.txt
 cp .env.example .env
+# Fill in: SECRET_KEY (openssl rand -hex 32), SMTP_* vars
+# DATABASE_URL is auto-set by docker-compose for local dev
+```
+
+Start everything and create tables (first time only):
+
+```bash
+docker compose up -d --build
+docker compose exec api alembic upgrade head
+```
+
+Services available:
+- API: `http://localhost:8000`
+- Swagger (DEBUG=true): `http://localhost:8000/docs`
+- pgAdmin: `http://localhost:5050` — login: `admin@school.com` / `rootpassword`
+- pgAdmin DB connection: Host=`postgres`, Port=`5432`, User=`postgres`, Password=`root`
+
+**Daily usage:**
+```bash
+docker compose up -d        # start
+docker compose down         # stop (keeps DB data)
+docker compose down -v      # stop + wipe DB
+docker compose logs api -f  # live logs
+```
+
+**After model changes:**
+```bash
+docker compose exec api alembic revision --autogenerate -m "describe change"
+docker compose exec api alembic upgrade head
 ```
 
 Edit `backend/.env`:
@@ -422,26 +434,28 @@ alembic downgrade -1
 alembic current
 ```
 
-> On a fresh DB (e.g. new Supabase instance), just start the server once —
-> `create_all` builds all tables and auto-stamps Alembic at `head`.
-> All future deploys only need `alembic upgrade head` before starting.
+---
 
-Run the API:
+> **Option B — Run backend directly (no Docker, faster for active development)**
+>
+> Requires: Python 3.11+, PostgreSQL installed locally
+>
+> ```bash
+> cd backend
+> python -m venv .venv
+> # Windows: .venv\Scripts\activate  |  macOS/Linux: source .venv/bin/activate
+> pip install -r requirements.txt
+> cp .env.example .env
+> # Set DATABASE_URL to your local postgres, fill SECRET_KEY
+> alembic upgrade head
+> uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+> ```
+>
+> API: http://127.0.0.1:8000 · Swagger (DEBUG=true): http://127.0.0.1:8000/docs
 
-```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
+---
 
-- API: http://127.0.0.1:8000  
-- Swagger (when `DEBUG=true`): http://127.0.0.1:8000/docs  
-
-**Reset all tables (destructive):**
-
-```bash
-python scripts/init_db.py
-```
-
-### 3. Frontend
+### 2. Frontend
 
 ```bash
 cd frontend
