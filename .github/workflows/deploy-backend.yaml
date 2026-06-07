@@ -30,9 +30,6 @@ jobs:
             echo "=== Move to backend ==="
             cd ~/school/backend
 
-            echo "=== Run Alembic migrations ==="
-            docker compose -f docker-compose.prod.yml run --rm --env-file .env api sh -c "alembic upgrade head"
-
             echo "=== Build image on EC2 (ARM64 native) ==="
             docker compose -f docker-compose.prod.yml build
 
