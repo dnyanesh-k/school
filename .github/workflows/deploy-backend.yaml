@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "backend/**"   # only trigger when backend changes
+  workflow_dispatch:   # allow manual trigger from GitHub Actions UI
 
 jobs:
   deploy:
