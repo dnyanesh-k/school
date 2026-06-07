@@ -49,15 +49,13 @@ docker --version
 ### 4. Clone repository
 
 ```bash
-git clone https://github.com/YOUR_ORG/YOUR_REPO.git ~/app
+git clone https://github.com/dnyanesh-k/school.git ~/school
 ```
-```bash
-git clone https://github.com/dnyanesh-k/school.git
-```
+
 ### 5. Configure .env
 
 ```bash
-cd ~/app/backend
+cd ~/school/backend
 cp .env.example .env
 nano .env
 ```
@@ -73,15 +71,12 @@ Fill in:
 ### 6. First build & start
 
 ```bash
-cd ~/app/backend
+cd ~/school/backend
 
 # Build image (first time — takes 2-3 min)
 docker compose -f docker-compose.prod.yml build
 
-# Run Alembic migrations
-docker compose -f docker-compose.prod.yml run --rm api alembic upgrade head
-
-# Start the API
+# Start the API (alembic migrations run automatically at container startup)
 docker compose -f docker-compose.prod.yml up -d
 
 # Verify
@@ -160,12 +155,58 @@ In your GitHub repo → Settings → Secrets and variables → Actions:
 
 Every `git push` to `main` (that touches `backend/`):
 1. GitHub runner SSHes into EC2
-2. `git pull` latest code
-3. Alembic migrations run inside a temporary container
-4. Docker image rebuilt on EC2 (native ARM64 — no QEMU needed)
-5. `docker compose up -d` with zero-downtime swap
+2. `git pull` latest code from `~/school`
+3. Docker image rebuilt on EC2 (native ARM64 — no QEMU needed)
+4. `docker compose up -d` restarts container
+5. **Alembic migrations run automatically at container startup** (before uvicorn starts)
 6. Old images pruned
 7. Health check confirms API is up
+
+You can also trigger manually: GitHub → Actions → Deploy Backend to EC2 → Run workflow
+
+---
+
+## Adding new DB columns (Alembic workflow)
+
+**Never write raw SQL.** Use autogenerate instead:
+
+### Step 1 — Change the SQLAlchemy model
+```python
+# e.g. add a column to app/models/user.py
+last_login = Column(DateTime, nullable=True)
+```
+
+### Step 2 — Start local Postgres and sync schema
+```bash
+# from backend/ folder
+docker compose up -d postgres
+alembic upgrade head   # brings local DB to current prod schema
+```
+
+### Step 3 — Autogenerate migration
+```bash
+alembic revision --autogenerate -m "add last_login to users"
+# creates alembic/versions/YYYYMMDD_HHMM_xxxx_add_last_login_to_users.py
+```
+
+### Step 4 — Review the generated file
+```python
+# alembic/versions/xxxx.py
+def upgrade():
+    op.add_column('users', sa.Column('last_login', sa.DateTime(), nullable=True))
+
+def downgrade():
+    op.drop_column('users', 'last_login')
+```
+
+### Step 5 — Commit and push
+```bash
+git add alembic/versions/
+git commit -m "migration: add last_login to users"
+git push origin main
+```
+
+CI auto-deploys → container restarts → `alembic upgrade head` runs → column appears in Supabase.
 
 ---
 
