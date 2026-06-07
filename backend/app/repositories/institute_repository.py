@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
 
 from app.models.institute import Institute
+from app.models.student import Student
 
 
 class InstituteRepository:
@@ -65,3 +66,20 @@ class InstituteRepository:
             select(Institute.status, func.count(Institute.id)).group_by(Institute.status)
         )
         return {status: count for status, count in result.all()}
+
+    async def total_students_all(self) -> int:
+        result = await self.db.execute(
+            select(func.count(Student.id)).where(
+                Student.is_deleted == False,
+                Student.is_active == True,
+            )
+        )
+        return result.scalar() or 0
+
+    async def student_counts_per_institute(self) -> dict[int, int]:
+        result = await self.db.execute(
+            select(Student.institute_id, func.count(Student.id))
+            .where(Student.is_deleted == False, Student.is_active == True)
+            .group_by(Student.institute_id)
+        )
+        return {institute_id: count for institute_id, count in result.all()}

@@ -24,10 +24,10 @@ jobs:
             set -e
 
             echo "=== Pull latest code ==="
-            git -C ~/app pull origin main
+            git -C ~/school pull origin main
 
             echo "=== Move to backend ==="
-            cd ~/app/backend
+            cd ~/school/backend
 
             echo "=== Run Alembic migrations ==="
             docker compose -f docker-compose.prod.yml run --rm \

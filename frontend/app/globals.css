@@ -469,7 +469,42 @@ input:-webkit-autofill {
   }
 }
 
-/* ── Attendance / scores save bar ─────────────────────────────────────────── */
+/* ── Search input ────────────────────────────────────────────────────── */
+.vt-search-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--ink-200);
+  background: var(--surface-0);
+  color: var(--ink-900);
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color 0.15s;
+}
+
+.vt-search-input:focus {
+  border-color: var(--brand-primary);
+}
+.vt-search-input::placeholder {
+  color: var(--ink-400);
+}
+
+/* Remove number input spinners globally */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ── Attendance / scores save bar ─────────────────────────────────────── */
 .vt-attendance-save,
 .vt-scores-save {
   position: fixed;
@@ -731,6 +766,105 @@ input:-webkit-autofill {
   color: var(--ink-500);
   margin-bottom: 24px;
   line-height: 1.5;
+}
+
+/* ── Fee period pill toggle ─────────────────────────────────────────── */
+.vt-period-pills {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.vt-period-pill {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border-subtle);
+  background: transparent;
+  color: var(--ink-500);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.vt-period-pill.active {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+
+/* ── Attendance trend bar chart ─────────────────────────────────────── */
+.vt-trend-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.vt-trend-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-600);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.vt-trend-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+  overflow: hidden;
+}
+.vt-trend-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.vt-trend-pct {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--ink-700);
+  line-height: 1;
+  white-space: nowrap;
+}
+.vt-trend-bar {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  opacity: 0.85;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 2px;
+  min-height: 4px;
+  box-sizing: border-box;
+}
+.vt-trend-bar.today {
+  opacity: 1;
+  outline: 2px solid rgba(0,0,0,0.15);
+  outline-offset: 1px;
+}
+.vt-trend-absent {
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.vt-trend-day {
+  font-size: 11px;
+  color: var(--ink-900);
+  font-weight: 700;
+  white-space: nowrap;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+.vt-trend-day.today {
+  color: var(--brand-primary);
+  font-weight: 800;
 }
 
 .vt-error-banner {

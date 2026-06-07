@@ -8,7 +8,7 @@ from app.models.student import Student
 from app.models.test import Test
 from app.repositories.attendance_repository import AttendanceRepository
 from app.repositories.fee_repository import FeeRepository
-from app.schemas.dashboard import DashboardSummaryOut
+from app.schemas.dashboard import AttendanceTrendPoint, DashboardSummaryOut
 
 
 class DashboardService:
@@ -34,6 +34,7 @@ class DashboardService:
 
         fees_collected = None
         fees_collected_this_month = None
+        fees_collected_this_week = None
         fees_pending = None
         collection_rate_pct = None
         fee_defaulters_count = None
@@ -73,6 +74,21 @@ class DashboardService:
             )
             fees_collected_this_month = int(month_collected_result.scalar() or 0)
 
+            week_collected_result = await self.db.execute(
+                select(func.coalesce(func.sum(Installment.paid_amount), 0))
+                .join(FeePlan, Installment.fee_plan_id == FeePlan.id)
+                .join(Student, FeePlan.student_id == Student.id)
+                .where(
+                    Student.institute_id == institute_id,
+                    FeePlan.is_deleted == False,
+                    Installment.is_deleted == False,
+                    Installment.paid_date.isnot(None),
+                    Installment.paid_date >= week_start,
+                    Installment.paid_date <= today,
+                )
+            )
+            fees_collected_this_week = int(week_collected_result.scalar() or 0)
+
             overdue_installments = await self.fee_repo.get_unpaid_installments(today, institute_id)
             defaulter_student_ids = {
                 item.fee_plan.student_id
@@ -88,6 +104,15 @@ class DashboardService:
         if total_students > 0:
             present_count = total_students - absent_today_count
             attendance_pct = round((present_count / total_students) * 100, 1)
+
+        # 7-day trend (oldest → newest)
+        absent_by_date = await self.attendance_repo.get_absent_counts_last_n_days(institute_id, 7)
+        trend: list[AttendanceTrendPoint] = []
+        for i in range(6, -1, -1):
+            d = today - timedelta(days=i)
+            absent = absent_by_date.get(d, 0)
+            pct = round(((total_students - absent) / total_students) * 100, 1) if total_students > 0 else 0.0
+            trend.append(AttendanceTrendPoint(date=d, pct=pct, absent=absent))
 
         tests_week_result = await self.db.execute(
             select(func.count(Test.id)).where(
@@ -113,9 +138,11 @@ class DashboardService:
             total_students=total_students,
             attendance_today_pct=attendance_pct,
             absent_today_count=absent_today_count,
+            attendance_trend=trend,
             can_view_fees=include_fees,
             fees_collected=fees_collected,
             fees_collected_this_month=fees_collected_this_month,
+            fees_collected_this_week=fees_collected_this_week,
             fees_pending=fees_pending,
             collection_rate_pct=collection_rate_pct,
             fee_defaulters_count=fee_defaulters_count,

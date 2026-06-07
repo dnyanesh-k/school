@@ -335,6 +335,9 @@ export function AddFeePlanSheet({
   const installmentSum = installments.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
   const total = Number(totalAmount) || 0;
   const totalsMatch = total > 0 && installmentSum === total;
+  const sumExceedsTotal = total > 0 && installmentSum > total;
+  const allRowsFilled = installments.every((item) => Number(item.amount) > 0 && !!item.due_date);
+  const isFormValid = !!studentId && total > 0 && allRowsFilled && totalsMatch;
 
   const addRow = () => {
     setInstallments((current) => [...current, { amount: "", due_date: "" }]);
@@ -360,12 +363,16 @@ export function AddFeePlanSheet({
       setError("Enter a valid total amount");
       return;
     }
-    if (!totalsMatch) {
-      setError(`Installments must add up to ${formatInr(total)} (currently ${formatInr(installmentSum)})`);
+    if (!allRowsFilled) {
+      setError("Fill in all installment amounts and due dates");
       return;
     }
-    if (installments.some((item) => !item.amount || !item.due_date)) {
-      setError("Fill in all installment amounts and due dates");
+    if (sumExceedsTotal) {
+      setError(`Installments total (${formatInr(installmentSum)}) cannot exceed total amount (${formatInr(total)})`);
+      return;
+    }
+    if (!totalsMatch) {
+      setError(`Installments must add up to ${formatInr(total)} (currently ${formatInr(installmentSum)})`);
       return;
     }
 
@@ -398,7 +405,7 @@ export function AddFeePlanSheet({
       onClose={onClose}
       title="Add fee plan"
       footer={
-        <Button variant="primary" onClick={submit} loading={loading} disabled={loading} fullWidth>
+        <Button variant="primary" onClick={submit} loading={loading} disabled={loading || !isFormValid} fullWidth>
           Create fee plan
         </Button>
       }
@@ -498,11 +505,19 @@ export function AddFeePlanSheet({
               style={{
                 marginTop: 10,
                 fontSize: "12px",
-                color: totalsMatch ? "var(--success)" : "var(--error)",
                 fontWeight: 600,
+                color: totalsMatch
+                  ? "var(--success)"
+                  : sumExceedsTotal
+                  ? "var(--error)"
+                  : "var(--warning)",
               }}
             >
-              Installments total: {formatInr(installmentSum)} / {formatInr(total)}
+              {totalsMatch
+                ? `✓ Installments match total ${formatInr(total)}`
+                : sumExceedsTotal
+                ? `✗ Exceeds total by ${formatInr(installmentSum - total)}`
+                : `${formatInr(installmentSum)} of ${formatInr(total)} — remaining ${formatInr(total - installmentSum)}`}
             </p>
           )}
         </div>

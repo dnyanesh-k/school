@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/hooks/useToast";
 import { Pagination } from "@/components/common/Pagination";
-import { adminService, getErrorMessage, type InstituteRecord } from "@/services/adminService";
+import { adminService, getErrorMessage, type AdminStats, type InstituteRecord } from "@/services/adminService";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
 type FilterStatus = "all" | "pending" | "active" | "rejected" | "suspended";
@@ -57,13 +57,17 @@ function InstituteCard({
         <p>{institute.email}</p>
         <p>{institute.phone}</p>
         {institute.admin && <p>Admin: {institute.admin.full_name}</p>}
-        <p style={{ fontSize: "12px", color: "var(--ink-400)", marginTop: 4 }}>Registered {formatDate(institute.created_at)}</p>
+        <p style={{ fontSize: "12px", color: "var(--ink-400)", marginTop: 4 }}>
+          Registered {formatDate(institute.created_at)}
+          {" · "}
+          <strong style={{ color: "var(--ink-600)" }}>{institute.student_count}</strong> student{institute.student_count !== 1 ? "s" : ""}
+        </p>
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {institute.status === "pending" && (
           <>
-            <button type="button" disabled={busy} onClick={() => onAction(institute.id, "active")} style={actionStyle("success", busy)}>Enable</button>
+            <button type="button" disabled={busy} onClick={() => onAction(institute.id, "active")} style={actionStyle("success", busy)}>Approve</button>
             <button type="button" disabled={busy} onClick={() => onAction(institute.id, "rejected")} style={actionStyle("danger", busy)}>Reject</button>
           </>
         )}
@@ -75,6 +79,16 @@ function InstituteCard({
         )}
         {institute.status === "rejected" && (
           <button type="button" disabled={busy} onClick={() => onAction(institute.id, "active")} style={actionStyle("success", busy)}>Enable</button>
+        )}
+        {institute.phone && (
+          <a
+            href={`https://wa.me/91${institute.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hi ${institute.admin?.full_name ?? "there"}, your institute *${institute.name}* has been approved on VidyaTrack! You can now log in and get started. Welcome aboard 🎉`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...actionStyle("neutral", false), display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none" }}
+          >
+            <span style={{ fontSize: 14 }}>💬</span> WhatsApp
+          </a>
         )}
       </div>
     </div>
@@ -106,12 +120,18 @@ function actionStyle(variant: "success" | "danger" | "neutral", disabled: boolea
 export default function AdminPage() {
   const { showToast } = useToast();
   const [institutes, setInstitutes] = useState<InstituteRecord[]>([]);
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [filter, setFilter] = useState<FilterStatus>("pending");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    adminService.getStats().then(setStats).catch(() => null);
+  }, []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -137,6 +157,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     setPage(1);
+    setSearch("");
   }, [filter]);
 
   const handleAction = async (instituteId: number, status: "active" | "rejected" | "suspended") => {
@@ -162,7 +183,7 @@ export default function AdminPage() {
 
   return (
     <>
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 16 }}>
         <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "24px", color: "var(--ink-900)", marginBottom: 6 }}>
           Institutes
         </h1>
@@ -170,6 +191,22 @@ export default function AdminPage() {
           Enable or disable institute access after self-registration.
         </p>
       </div>
+
+      {stats && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+          {[
+            { label: "Total", value: stats.total, color: "var(--ink-700)" },
+            { label: "Active", value: stats.active, color: "var(--success)" },
+            { label: "Pending", value: stats.pending, color: "#c2410c" },
+            { label: "Students", value: stats.total_students, color: "var(--brand-primary)" },
+          ].map((s) => (
+            <div key={s.label} style={{ background: "var(--surface-0)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", padding: "10px 16px", minWidth: 80, textAlign: "center", boxShadow: "var(--shadow-sm)" }}>
+              <p style={{ fontSize: 20, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</p>
+              <p style={{ fontSize: 11, color: "var(--ink-500)", marginTop: 4, fontWeight: 500 }}>{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 16, scrollbarWidth: "none" }}>
         {filters.map((item) => {
@@ -199,33 +236,53 @@ export default function AdminPage() {
         })}
       </div>
 
+      {!loading && institutes.length > 0 && (
+        <input
+          type="search"
+          placeholder="Search by name or city…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="vt-search-input"
+        />
+      )}
+
       {loading ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {[1, 2, 3].map((i) => (
             <div key={i} style={{ height: 140, borderRadius: "var(--radius-lg)", background: "var(--ink-100)" }} />
           ))}
         </div>
-      ) : institutes.length === 0 ? (
-        <div style={{ padding: "48px 20px", textAlign: "center", background: "var(--surface-0)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)" }}>
-          <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "15px", color: "var(--ink-900)", marginBottom: 6 }}>Nothing here</p>
-          <p style={{ fontSize: "13px", color: "var(--ink-500)" }}>No institutes in this filter.</p>
-        </div>
-      ) : (
-        <>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 8 }}>
-            {institutes.map((institute) => (
-              <InstituteCard key={institute.id} institute={institute} onAction={handleAction} loadingId={actionLoadingId} />
-            ))}
+      ) : (() => {
+        const q = search.trim().toLowerCase();
+        const filtered = q
+          ? institutes.filter((inst) =>
+              inst.name.toLowerCase().includes(q) || inst.city.toLowerCase().includes(q)
+            )
+          : institutes;
+        return filtered.length === 0 ? (
+          <div style={{ padding: "48px 20px", textAlign: "center", background: "var(--surface-0)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)" }}>
+            <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "15px", color: "var(--ink-900)", marginBottom: 6 }}>Nothing here</p>
+            <p style={{ fontSize: "13px", color: "var(--ink-500)" }}>{q ? `No institutes match "${search}"` : "No institutes in this filter."}</p>
           </div>
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            total={total}
-            onPageChange={setPage}
-            loading={loading}
-          />
-        </>
-      )}
+        ) : (
+          <>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 8 }}>
+              {filtered.map((institute) => (
+                <InstituteCard key={institute.id} institute={institute} onAction={handleAction} loadingId={actionLoadingId} />
+              ))}
+            </div>
+            {!q && (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                total={total}
+                onPageChange={setPage}
+                loading={loading}
+              />
+            )}
+          </>
+        );
+      })()}
     </>
   );
 }

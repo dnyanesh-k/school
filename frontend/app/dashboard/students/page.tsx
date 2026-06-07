@@ -214,6 +214,7 @@ export default function StudentsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [feeStudent, setFeeStudent] = useState<Student | null>(null);
+  const [search, setSearch] = useState("");
 
   const canViewFees = authService.canViewFees();
 
@@ -246,6 +247,7 @@ export default function StudentsPage() {
 
   useEffect(() => {
     setPage(1);
+    setSearch("");
   }, [selectedClass]);
 
   useEffect(() => {
@@ -288,14 +290,32 @@ export default function StudentsPage() {
           </div>
         )}
 
+        {!loading && students.length > 0 && (
+          <input
+            type="search"
+            placeholder="Search by name…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="vt-search-input"
+          />
+        )}
+
         {loading && <ListSkeleton count={4} />}
 
         {!loading && students.length === 0 && <EmptyState hasClasses={classes.length > 0} />}
 
-        {!loading && students.length > 0 && (
+        {!loading && students.length > 0 && (() => {
+          const q = search.trim().toLowerCase();
+          const filtered = q ? students.filter((s) => s.full_name.toLowerCase().includes(q)) : students;
+          return (
           <>
+            {filtered.length === 0 && (
+              <p style={{ textAlign: "center", color: "var(--ink-500)", fontSize: 14, padding: "32px 0" }}>
+                No students match &ldquo;{search}&rdquo;
+              </p>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {students.map((student) => (
+              {filtered.map((student) => (
                 <StudentListItem
                   key={student.id}
                   student={student}
@@ -310,15 +330,18 @@ export default function StudentsPage() {
                 />
               ))}
             </div>
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              total={total}
-              onPageChange={setPage}
-              loading={loading}
-            />
+            {!q && (
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                total={total}
+                onPageChange={setPage}
+                loading={loading}
+              />
+            )}
           </>
-        )}
+          );
+        })()}
       </PageContent>
 
       <StudentFormSheet

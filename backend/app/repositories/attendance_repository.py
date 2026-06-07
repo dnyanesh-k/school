@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, timedelta
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.attendance import Attendance
@@ -91,6 +91,25 @@ class AttendanceRepository:
             )
         )
         return list(result.scalars().all())
+
+    async def get_absent_counts_last_n_days(
+        self, institute_id: int, n: int = 7
+    ) -> dict[date, int]:
+        """Returns {date: absent_count} for the last n days (today included)."""
+        today = date.today()
+        start = today - timedelta(days=n - 1)
+        result = await self.db.execute(
+            select(Attendance.attendance_date, func.count(Attendance.id))
+            .join(Student, Attendance.student_id == Student.id)
+            .where(
+                Student.institute_id == institute_id,
+                Attendance.attendance_date >= start,
+                Attendance.attendance_date <= today,
+                Attendance.status == "absent",
+            )
+            .group_by(Attendance.attendance_date)
+        )
+        return {row[0]: row[1] for row in result.all()}
 
     async def upsert_batch(self, records: list[Attendance]) -> list[Attendance]:
         if not records:

@@ -3,11 +3,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import PlatformAdmin
 from app.db.session import get_db
-from app.schemas.admin import InstituteOut, InstituteStatusUpdate, InstituteStatusUpdateResponse
+from app.schemas.admin import AdminStatsOut, InstituteOut, InstituteStatusUpdate, InstituteStatusUpdateResponse
 from app.schemas.pagination import DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PaginatedResponse
 from app.services.admin_service import AdminService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+@router.get("/stats", response_model=AdminStatsOut)
+async def platform_stats(
+    _: PlatformAdmin,
+    db: AsyncSession = Depends(get_db),
+):
+    service = AdminService(db)
+    return await service.get_stats()
 
 
 @router.get("/institutes", response_model=PaginatedResponse[InstituteOut])

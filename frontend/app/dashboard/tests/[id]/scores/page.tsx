@@ -76,13 +76,23 @@ export default function TestScoresPage() {
     loadData();
   }, [loadData]);
 
-  const allFilled = useMemo(() => {
+  const anyFilled = useMemo(() => {
     if (scores.length === 0) return false;
-    return scores.every((row) => {
+    return scores.some((row) => {
       const marks = drafts[row.student_id]?.marks?.trim();
       return marks !== "" && !Number.isNaN(Number(marks));
     });
   }, [scores, drafts]);
+
+  const hasInvalidMarks = useMemo(() => {
+    if (!test) return false;
+    return scores.some((row) => {
+      const raw = drafts[row.student_id]?.marks?.trim();
+      if (!raw) return false;
+      const n = Number(raw);
+      return Number.isNaN(n) || n < 0 || n > test.total_marks;
+    });
+  }, [scores, drafts, test]);
 
   const updateDraft = (studentId: number, field: keyof ScoreDraft, value: string) => {
     setDrafts((prev) => ({
@@ -96,23 +106,18 @@ export default function TestScoresPage() {
   };
 
   const submitScores = async () => {
-    if (!test || !allFilled) return;
-
-    for (const row of scores) {
-      const marks = Number(drafts[row.student_id]?.marks);
-      if (marks < 0 || marks > test.total_marks) {
-        showToast(`Marks must be between 0 and ${test.total_marks}`, "error");
-        return;
-      }
-    }
+    if (!test || !anyFilled || hasInvalidMarks) return;
 
     setSaving(true);
     try {
-      const payload = scores.map((row) => ({
-        student_id: row.student_id,
-        marks_obtained: Number(drafts[row.student_id].marks),
-        remarks: drafts[row.student_id]?.remarks?.trim() ?? "",
-      }));
+      // Only submit rows that have marks entered
+      const payload = scores
+        .filter((row) => drafts[row.student_id]?.marks?.trim() !== "")
+        .map((row) => ({
+          student_id: row.student_id,
+          marks_obtained: Number(drafts[row.student_id].marks),
+          remarks: drafts[row.student_id]?.remarks?.trim() ?? "",
+        }));
 
       const response = await testService.submitScores(testId, payload);
       setTest(response.test);
@@ -198,6 +203,8 @@ export default function TestScoresPage() {
                 const draft = drafts[row.student_id] ?? { marks: "", remarks: "" };
                 const marksNum = draft.marks.trim() === "" ? null : Number(draft.marks);
                 const showWhatsApp = saved && marksNum != null && !Number.isNaN(marksNum);
+                const isInvalid = marksNum !== null && !Number.isNaN(marksNum) && test != null && (marksNum < 0 || marksNum > test.total_marks);
+                const isEnteredAndSaved = saved && row.marks_obtained != null;
 
                 return (
                   <div
@@ -205,11 +212,11 @@ export default function TestScoresPage() {
                     style={{
                       padding: "14px 16px",
                       borderRadius: "var(--radius-md)",
-                      border: "1px solid var(--ink-200)",
-                      background: "var(--surface-0)",
+                      border: `1px solid ${isInvalid ? "var(--error-border)" : "var(--ink-200)"}`,
+                      background: isEnteredAndSaved ? "var(--ink-50)" : "var(--surface-0)",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
                       <div
                         style={{
                           width: 40,
@@ -232,14 +239,44 @@ export default function TestScoresPage() {
                         <p style={{ fontWeight: 600, fontSize: "14px", color: "var(--ink-900)" }}>{row.student_name}</p>
                         <p style={{ fontSize: "12px", color: "var(--ink-500)" }}>Roll {row.roll_number || "—"}</p>
                       </div>
-                      <div style={{ width: 72 }}>
-                        <Input
-                          type="number"
-                          placeholder="Marks"
-                          value={draft.marks}
-                          onChange={(value) => updateDraft(row.student_id, "marks", value)}
-                        />
-                      </div>
+                      {isEnteredAndSaved ? (
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
+                          <p style={{ fontWeight: 800, fontSize: "18px", color: "var(--brand-primary)", fontFamily: "var(--font-display)", lineHeight: 1 }}>
+                            {row.marks_obtained}
+                          </p>
+                          <p style={{ fontSize: "11px", color: "var(--ink-400)", marginTop: 2 }}>/ {test?.total_marks}</p>
+                        </div>
+                      ) : (
+                        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            placeholder="—"
+                            value={draft.marks}
+                            min={0}
+                            max={test?.total_marks}
+                            onChange={(e) => updateDraft(row.student_id, "marks", e.target.value)}
+                            style={{
+                              width: 80,
+                              height: 44,
+                              borderRadius: "var(--radius-md)",
+                              border: `1.5px solid ${isInvalid ? "var(--error)" : "var(--ink-300)"}`,
+                              background: "var(--surface-1)",
+                              color: "var(--ink-900)",
+                              fontSize: 18,
+                              fontWeight: 700,
+                              fontFamily: "var(--font-display)",
+                              textAlign: "center",
+                              padding: "0 8px",
+                              outline: "none",
+                              MozAppearance: "textfield",
+                            } as React.CSSProperties}
+                          />
+                          <p style={{ fontSize: 10, color: isInvalid ? "var(--error)" : "var(--ink-400)", fontWeight: 600 }}>
+                            {isInvalid ? `Max ${test?.total_marks}` : `/ ${test?.total_marks}`}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {showWhatsApp && (
@@ -279,11 +316,17 @@ export default function TestScoresPage() {
 
       {!loading && test && scores.length > 0 && (
         <div className="vt-scores-save">
-          <Button onClick={submitScores} disabled={!allFilled || saving} loading={saving} fullWidth>
-            {saved ? "Update scores" : "Save all scores"}
+          {hasInvalidMarks && (
+            <p style={{ fontSize: 12, color: "var(--error)", fontWeight: 600, textAlign: "center", marginBottom: 8 }}>
+              Some marks exceed the maximum of {test.total_marks}
+            </p>
+          )}
+          <Button onClick={submitScores} disabled={!anyFilled || hasInvalidMarks || saving} loading={saving} fullWidth>
+            Save scores
           </Button>
         </div>
       )}
     </>
   );
 }
+r

@@ -1,13 +1,21 @@
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
 
+export interface AttendanceTrendPoint {
+  date: string;
+  pct: number;
+  absent: number;
+}
+
 export interface DashboardSummary {
   total_students: number;
   attendance_today_pct: number;
   absent_today_count: number;
+  attendance_trend: AttendanceTrendPoint[];
   can_view_fees: boolean;
   fees_collected: number | null;
   fees_collected_this_month: number | null;
+  fees_collected_this_week: number | null;
   fees_pending: number | null;
   collection_rate_pct: number | null;
   fee_defaulters_count: number | null;
