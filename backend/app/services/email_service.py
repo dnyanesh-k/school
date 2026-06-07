@@ -34,6 +34,7 @@ async def send_welcome_email(to_email: str, admin_name: str, institute_name: str
         f"Thank you for registering {institute_name} on {settings.smtp_from_name}.\n\n"
         "Our team will review your application and activate your account shortly. "
         "You'll receive another email once it's approved.\n\n"
+        "Once approved, you can log in at: https://vidyatrackai.com\n\n"
         f"— The {settings.smtp_from_name} Team"
     )
     html_body = f"""
@@ -42,6 +43,9 @@ async def send_welcome_email(to_email: str, admin_name: str, institute_name: str
       <p>Thank you for registering <strong>{institute_name}</strong> on {settings.smtp_from_name}.</p>
       <p>Our team will review your application and activate your account shortly.
          You will receive another email once it is approved.</p>
+      <p>Once approved, log in at:
+         <a href="https://vidyatrackai.com" style="color: #4f46e5; font-weight: 600;">vidyatrackai.com</a>
+      </p>
       <p style="color: #6b6b80; font-size: 14px; margin-top: 24px;">— The {settings.smtp_from_name} Team</p>
     </div>
     """
@@ -67,7 +71,7 @@ async def send_password_reset_otp(to_email: str, otp: str) -> None:
     )
     html_body = f"""
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111116;">
-      <p>Use this code to reset your VidyaTrack password:</p>
+      <p>Use this code to reset your password:</p>
       <p style="font-size: 28px; font-weight: 700; letter-spacing: 0.3em; margin: 16px 0;">{otp}</p>
       <p style="color: #6b6b80; font-size: 14px;">
         Expires in {settings.otp_expire_minutes} minutes.

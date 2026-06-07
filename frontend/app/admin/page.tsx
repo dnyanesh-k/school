@@ -82,7 +82,7 @@ function InstituteCard({
         )}
         {institute.phone && (
           <a
-            href={`https://wa.me/91${institute.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hi ${institute.admin?.full_name ?? "there"}, your institute *${institute.name}* has been approved on VidyaTrack! You can now log in and get started. Welcome aboard 🎉`)}`}
+            href={`https://wa.me/91${institute.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hi ${institute.admin?.full_name ?? "there"}, your institute *${institute.name}* has been approved on VidyaTrack! You can now log in and get started at https://vidyatrackai.com. Welcome aboard 🎉`)}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ ...actionStyle("neutral", false), display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none" }}
