@@ -27,6 +27,37 @@ def _send_sync(to_email: str, subject: str, text_body: str, html_body: str) -> N
         server.sendmail(settings.smtp_from_email, [to_email], message.as_string())
 
 
+async def send_welcome_email(to_email: str, admin_name: str, institute_name: str) -> None:
+    subject = f"Welcome to {settings.smtp_from_name} — Registration Received"
+    text_body = (
+        f"Hi {admin_name},\n\n"
+        f"Thank you for registering {institute_name} on {settings.smtp_from_name}.\n\n"
+        "Our team will review your application and activate your account shortly. "
+        "You'll receive another email once it's approved.\n\n"
+        f"— The {settings.smtp_from_name} Team"
+    )
+    html_body = f"""
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111116; max-width: 480px;">
+      <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Welcome, {admin_name}!</h2>
+      <p>Thank you for registering <strong>{institute_name}</strong> on {settings.smtp_from_name}.</p>
+      <p>Our team will review your application and activate your account shortly.
+         You will receive another email once it is approved.</p>
+      <p style="color: #6b6b80; font-size: 14px; margin-top: 24px;">— The {settings.smtp_from_name} Team</p>
+    </div>
+    """
+
+    if not _smtp_configured():
+        logger.info("SMTP not configured — skipping welcome email for %s", to_email)
+        if settings.debug:
+            print(f"[DEV] Welcome email to {to_email} ({institute_name})")
+        return
+
+    try:
+        await asyncio.to_thread(_send_sync, to_email, subject, text_body, html_body)
+    except Exception:
+        logger.exception("Failed to send welcome email to %s", to_email)
+
+
 async def send_password_reset_otp(to_email: str, otp: str) -> None:
     subject = f"{settings.smtp_from_name} password reset code"
     text_body = (

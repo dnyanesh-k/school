@@ -21,6 +21,7 @@ class InstituteOut(BaseModel):
     status: str
     created_at: datetime
     admin: Optional[InstituteAdminOut] = None
+    student_count: int = 0
 
     model_config = {"from_attributes": True}
 
@@ -35,6 +36,7 @@ class AdminStatsOut(BaseModel):
     active: int
     rejected: int
     suspended: int
+    total_students: int
 
 
 class InstituteStatusUpdateResponse(BaseModel):

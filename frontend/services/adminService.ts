@@ -14,11 +14,21 @@ export interface InstituteRecord {
   institute_type: string;
   status: string;
   created_at: string;
+  student_count: number;
   admin?: {
     id: number;
     full_name: string;
     email: string;
   } | null;
+}
+
+export interface AdminStats {
+  total: number;
+  pending: number;
+  active: number;
+  rejected: number;
+  suspended: number;
+  total_students: number;
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -44,6 +54,11 @@ export const adminService = {
   async updateStatus(instituteId: number, status: "active" | "rejected" | "suspended") {
     const response = await api.patch(API_URLS.ADMIN.INSTITUTE_STATUS(instituteId), { status });
     return response.data;
+  },
+
+  async getStats(): Promise<AdminStats> {
+    const response = await api.get(API_URLS.ADMIN.STATS);
+    return response.data as AdminStats;
   },
 };
 

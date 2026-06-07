@@ -13,8 +13,57 @@ import {
   dashboardService,
   formatInr,
   getErrorMessage,
+  type AttendanceTrendPoint,
   type DashboardSummary,
 } from "@/services/dashboardService";
+
+const DAY_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
+const BAR_COLORS = ["#6366f1", "#16a34a", "#d97706", "#e11d48"];
+const BAR_MAX_PX = 56;
+
+function AttendanceTrend({ trend }: { trend: AttendanceTrendPoint[] }) {
+  if (!trend || trend.length === 0) return null;
+
+  // Skip Sundays (holiday)
+  const filtered = trend.filter((t) => {
+    const [y, m, d] = t.date.split("-").map(Number);
+    return new Date(y, m - 1, d).getDay() !== 0;
+  });
+  if (filtered.length === 0) return null;
+
+  const max = Math.max(...filtered.map((t) => t.pct), 1);
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  return (
+    <div className="vt-trend-card">
+      <p className="vt-trend-title">Attendance — last 6 days</p>
+      <div className="vt-trend-bars">
+        {filtered.map((t, i) => {
+          const [y, m, d] = t.date.split("-").map(Number);
+          const jsDate = new Date(y, m - 1, d);
+          const dayLabel = `${DAY_SHORT[jsDate.getDay()]}/${d}`;
+          const isToday = t.date === todayStr;
+          const barPx = Math.max(Math.round((t.pct / max) * BAR_MAX_PX), 4);
+          const color = BAR_COLORS[i % BAR_COLORS.length];
+          return (
+            <div key={t.date} className="vt-trend-col">
+              <span className="vt-trend-pct">{t.pct}%</span>
+              <div
+                className={`vt-trend-bar${isToday ? " today" : ""}`}
+                style={{ height: barPx, background: color }}
+              >
+                {t.absent > 0 && (
+                  <span className="vt-trend-absent">{t.absent}</span>
+                )}
+              </div>
+              <span className={`vt-trend-day${isToday ? " today" : ""}`}>{dayLabel}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -28,12 +77,15 @@ function firstName(fullName: string | null | undefined) {
   return fullName.trim().split(/\s+/)[0];
 }
 
+type FeePeriod = "week" | "month";
+
 export default function DashboardHomePage() {
   const router = useRouter();
   const { user: authUser, loading: authLoading } = useInstitute();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [feePeriod, setFeePeriod] = useState<FeePeriod>("month");
 
   useEffect(() => {
     // Wait until auth is resolved; redirect handled by InstituteProvider
@@ -91,7 +143,23 @@ export default function DashboardHomePage() {
               <StatCard label="Today's attendance" value={`${summary.attendance_today_pct}%`} tone="success" />
               {summary.can_view_fees ? (
                 <>
-                  <StatCard label="Collected this month" value={formatInr(summary.fees_collected_this_month ?? 0)} tone="neutral" />
+                  <div className="vt-stat vt-stat--neutral">
+                    <div className="vt-period-pills">
+                      {(["week", "month"] as FeePeriod[]).map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => setFeePeriod(p)}
+                          className={`vt-period-pill${feePeriod === p ? " active" : ""}`}
+                        >
+                          {p === "week" ? "Week" : "Month"}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="vt-stat-value">
+                      {formatInr(feePeriod === "week" ? (summary.fees_collected_this_week ?? 0) : (summary.fees_collected_this_month ?? 0))}
+                    </p>
+                    <p className="vt-stat-label">Collected</p>
+                  </div>
                   <StatCard label="Fees pending" value={formatInr(summary.fees_pending ?? 0)} tone="warning" />
                 </>
               ) : (
@@ -105,6 +173,10 @@ export default function DashboardHomePage() {
                 </>
               )}
             </StatGrid>
+
+            {summary.attendance_trend.length > 0 && (
+              <AttendanceTrend trend={summary.attendance_trend} />
+            )}
 
             {attentionCount > 0 && (
               <>
