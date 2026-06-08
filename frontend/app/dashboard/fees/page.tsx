@@ -185,7 +185,7 @@ function StudentFeeRow({
         </p>
         <p style={{ fontSize: "12px", color: "var(--ink-500)", marginBottom: 4 }}>
           {summary.class_name}
-          {summary.has_plan ? ` ┬╖ Pending ${formatInr(summary.pending_amount)}` : ""}
+          {summary.has_plan ? `· Pending ${formatInr(summary.pending_amount)}` : ""}
         </p>
         <FeeStatusChip status={summary.status} />
       </button>
