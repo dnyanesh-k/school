@@ -102,6 +102,7 @@ body {
   color: var(--ink-900);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 /* ── Utilities ─────────────────────────────────────────────────────────────── */
@@ -1321,8 +1322,13 @@ input[type="number"] {
   gap: 8px;
   overflow-x: auto;
   padding: 0 0 12px;
-  scrollbar-width: none;
+  scrollbar-width: none;        /* Firefox */
+  -webkit-overflow-scrolling: touch; /* iOS momentum scroll */
   margin-bottom: 4px;
+}
+
+.vt-filter-row::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari / Mobile Chrome */
 }
 
 .vt-filter-pill {

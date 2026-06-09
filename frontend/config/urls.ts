@@ -31,6 +31,12 @@ export const API_URLS = {
     LIST:          `${BASE_URL}/students`,
     DETAIL:        (id: number) => `${BASE_URL}/students/${id}`,
   },
+  ADMISSIONS: {
+    LIST:          `${BASE_URL}/admissions`,
+    DETAIL:        (id: number) => `${BASE_URL}/admissions/${id}`,
+    CONVERT:       (id: number) => `${BASE_URL}/admissions/${id}/convert`,
+    PENDING_COUNT: `${BASE_URL}/admissions/pending-count`,
+  },
   FEES: {
     SUMMARY:       `${BASE_URL}/fees/summary`,
     PLAN:          `${BASE_URL}/fees/plan`,
