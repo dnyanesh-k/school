@@ -36,6 +36,10 @@ jobs:
             echo "=== Restart with zero-downtime swap ==="
             docker compose -f docker-compose.prod.yml run --rm api alembic upgrade head
 
+            # 2. FIX: Actually restart your live API containers to load the new code
+            echo "=== Restart with zero-downtime swap ==="
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
             echo "=== Remove old images ==="
             docker image prune -f
 
