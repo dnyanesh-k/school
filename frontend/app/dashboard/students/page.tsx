@@ -9,9 +9,11 @@ import { BottomSheet } from "@/components/common/BottomSheet";
 import { Pagination } from "@/components/common/Pagination";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/hooks/useToast";
+import Link from "next/link";
 import { studentService, type Student } from "@/services/studentService";
 import { feeService } from "@/services/feeService";
 import { authService } from "@/services/authService";
+import { admissionService } from "@/services/admissionService";
 import { StudentFormSheet } from "@/components/students/StudentFormSheet";
 import { StudentListItem } from "@/components/students/StudentListItem";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
@@ -215,14 +217,13 @@ export default function StudentsPage() {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [feeStudent, setFeeStudent] = useState<Student | null>(null);
   const [search, setSearch] = useState("");
+  const [pendingAdmissions, setPendingAdmissions] = useState(0);
 
   const canViewFees = authService.canViewFees();
 
   useEffect(() => {
-    api
-      .get(API_URLS.CLASSES.LIST)
-      .then((r) => setClasses(r.data))
-      .catch(() => {});
+    api.get(API_URLS.CLASSES.LIST).then((r) => setClasses(r.data)).catch(() => {});
+    admissionService.pendingCount().then(setPendingAdmissions).catch(() => {});
   }, []);
 
   const fetchStudents = async () => {
@@ -286,7 +287,47 @@ export default function StudentsPage() {
             <p className="vt-tab-count">
               {students.length > 0 ? `${total} student${total !== 1 ? "s" : ""}` : "No students yet"}
             </p>
-            <TabAddButton label="Add student" onClick={openAdd} />
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+              <Link
+                href="/dashboard/admissions"
+                style={{
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  height: 36,
+                  padding: "0 12px",
+                  borderRadius: "var(--radius-md)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  fontFamily: "var(--font-display)",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  // Amber — signals "pending attention" without competing with the primary Add button
+                  background: "#fff7ed",
+                  border: "1.5px solid #fb923c",
+                  color: "#c2410c",
+                }}
+              >
+                Admissions
+                {pendingAdmissions > 0 && (
+                  <span
+                    style={{
+                      background: "#fb923c",
+                      color: "#fff",
+                      borderRadius: "var(--radius-full)",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      padding: "0 5px",
+                      lineHeight: "17px",
+                    }}
+                  >
+                    {pendingAdmissions}
+                  </span>
+                )}
+              </Link>
+              <TabAddButton label="Add student" onClick={openAdd} />
+            </div>
           </div>
         )}
 

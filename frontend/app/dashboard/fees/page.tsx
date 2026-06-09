@@ -260,7 +260,7 @@ function DefaulterRow({ defaulter }: { defaulter: Defaulter }) {
           {defaulter.student_name}
         </p>
         <p style={{ fontSize: "12px", color: "var(--ink-500)", marginBottom: 4 }}>
-          {defaulter.class_name} ┬╖ Due {formatDate(defaulter.due_date)}
+          {defaulter.class_name} · Due {formatDate(defaulter.due_date)}
         </p>
         <span
           style={{
