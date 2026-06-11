@@ -1,3 +1,5 @@
+name: vidyatrackai
+
 services:
   api:
     build:
