@@ -25,11 +25,13 @@ export function StudentListItem({
   onEdit,
   onDelete,
   onViewFees,
+  onShareQr,
 }: {
   student: Student;
   onEdit: () => void;
   onDelete: (onSuccess: () => void) => Promise<void>;
   onViewFees?: () => void;
+  onShareQr?: () => void;
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -65,6 +67,38 @@ export function StudentListItem({
         {onViewFees && (
           <button type="button" className="vt-student-fees-btn" onClick={onViewFees}>
             Fees
+          </button>
+        )}
+
+        {onShareQr && (
+          <button
+            type="button"
+            onClick={onShareQr}
+            aria-label="Share parent QR"
+            title="Share parent QR"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 32,
+              height: 32,
+              borderRadius: "var(--radius-sm)",
+              background: "var(--brand-50)",
+              border: "1.5px solid var(--brand-200)",
+              color: "var(--brand-600)",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.75"/>
+              <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.75"/>
+              <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.75"/>
+              <rect x="14" y="14" width="3" height="3" fill="currentColor"/>
+              <rect x="19" y="14" width="2" height="2" fill="currentColor"/>
+              <rect x="14" y="19" width="2" height="2" fill="currentColor"/>
+              <rect x="18" y="18" width="3" height="3" fill="currentColor"/>
+            </svg>
           </button>
         )}
 

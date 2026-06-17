@@ -3,6 +3,15 @@ import { API_URLS } from "@/config/urls";
 import type { PaginatedResult, PaginationParams } from "@/lib/pagination";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
+export interface ShareQrResult {
+  token: string;
+  pin: string;
+  student_name: string;
+  parent_name: string;
+  parent_phone: string;
+  portal_url: string;
+}
+
 export interface Student {
   id: number;
   roll_number: string;
@@ -64,6 +73,12 @@ export const studentService = {
 
   async deactivate(id: number) {
     const response = await api.delete(API_URLS.STUDENTS.DETAIL(id));
+    return response.data;
+  },
+
+  async shareQr(id: number, regenerate = false): Promise<ShareQrResult> {
+    const url = `${API_URLS.PARENT.SHARE_QR(id)}${regenerate ? "?regenerate=true" : ""}`;
+    const response = await api.post(url);
     return response.data;
   },
 };

@@ -17,12 +17,14 @@ from app.api.v1 import (
     fees,
     holidays,
     installments,
+    parent,
     students,
     subjects,
     tests,
     users,
 )
 from app.core.auth import require_institute_admin, require_institute_user, require_platform_admin
+from app.api.v1.parent import public_router as parent_public_router
 
 # Router-level auth — catches any endpoint that forgets Depends(...)
 INSTITUTE_AUTH = [Depends(require_institute_user)]
@@ -44,3 +46,7 @@ v1_router.include_router(holidays.router, dependencies=INSTITUTE_AUTH)
 v1_router.include_router(dashboard.router, dependencies=INSTITUTE_AUTH)
 v1_router.include_router(fees.router, dependencies=INSTITUTE_ADMIN_AUTH)
 v1_router.include_router(installments.router, dependencies=INSTITUTE_ADMIN_AUTH)
+
+# share-qr: institute user auth; public parent view: no auth
+v1_router.include_router(parent.router, dependencies=INSTITUTE_AUTH)
+v1_router.include_router(parent_public_router)

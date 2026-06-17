@@ -61,4 +61,8 @@ export const API_URLS = {
   DASHBOARD: {
     SUMMARY:       `${BASE_URL}/dashboard/summary`,
   },
+  PARENT: {
+    SHARE_QR:      (studentId: number) => `${BASE_URL}/students/${studentId}/share-qr`,
+    PUBLIC_VIEW:   (token: string)     => `${BASE_URL}/public/parent/${token}`,
+  },
 };
