@@ -24,6 +24,7 @@ import {
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
 import { authService } from "@/services/authService";
+import { formatStudentName } from "@/components/students/StudentListItem";
 
 interface ClassOption {
   id: number;
@@ -421,7 +422,7 @@ export default function FeesPage() {
           .filter((item) => !item.has_plan)
           .map((item) => ({
             id: item.student_id,
-            name: item.student_name,
+            name: formatStudentName(item.student_name),
             class_name: item.class_name,
           })),
       );

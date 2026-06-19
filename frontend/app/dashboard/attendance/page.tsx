@@ -24,6 +24,7 @@ import {
 } from "@/services/attendanceService";
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
+import { formatStudentName } from "@/components/students/StudentListItem";
 
 interface ClassOption {
   id: number;
@@ -243,7 +244,7 @@ function AttendanceRow({
             whiteSpace: "nowrap",
           }}
         >
-          {student.student_name}
+          {formatStudentName(student.student_name)}
         </p>
         <p style={{ fontSize: "12px", color: "var(--ink-500)" }}>
           {student.roll_number ? `${student.roll_number} · ` : ""}

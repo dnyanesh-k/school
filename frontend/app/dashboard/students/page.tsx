@@ -285,7 +285,7 @@ function ParentQrSheet({
 
   const waUrl = data
     ? `https://wa.me/${data.parent_phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-        `Hi Dear Parent,\n\nYou can now view ${data.student_name.split(" ")[0]}'s attendance, test scores and fee details.\n\n👉 ${data.portal_url}\n\nPIN: ${data.pin === "••••••" ? "(previously shared)" : data.pin}\n\nEnter the PIN when prompted.`
+        `Hi Dear Parent,\n\nYou can now view ${data.student_name.split(" ")[0]}'s attendance, test scores and fee details.\n\n${data.portal_url}\n\nPIN: ${data.pin === "••••••" ? "(previously shared)" : data.pin}\n\nEnter the PIN when prompted.`
       )}`
     : "#";
 
