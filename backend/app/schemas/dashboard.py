@@ -27,4 +27,4 @@ class DashboardSummaryOut(BaseModel):
     fee_defaulters_count: int | None = None
     tests_this_week: int
     tests_pending_scores: int
-    fees_overdue:int
+    fees_overdue:int | None = None
