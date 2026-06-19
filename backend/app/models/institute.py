@@ -21,6 +21,7 @@ class Institute(Base):
 
     institute_type = Column(String, nullable=False)
     status = Column(String, default=InstituteStatus.PENDING.value, nullable=False, index=True)
+    drive_url = Column(String, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 

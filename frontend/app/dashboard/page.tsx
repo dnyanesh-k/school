@@ -77,7 +77,10 @@ function firstName(fullName: string | null | undefined) {
   return fullName.trim().split(/\s+/)[0];
 }
 
-type FeePeriod = "week" | "month";
+function formatShortDate(iso: string) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+}
 
 export default function DashboardHomePage() {
   const router = useRouter();
@@ -85,7 +88,6 @@ export default function DashboardHomePage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [feePeriod, setFeePeriod] = useState<FeePeriod>("month");
 
   useEffect(() => {
     // Wait until auth is resolved; redirect handled by InstituteProvider
@@ -141,28 +143,7 @@ export default function DashboardHomePage() {
             <StatGrid>
               <StatCard label="Total students" value={String(summary.total_students)} tone="brand" />
               <StatCard label="Today's attendance" value={`${summary.attendance_today_pct}%`} tone="success" />
-              {summary.can_view_fees ? (
-                <>
-                  <div className="vt-stat vt-stat--neutral">
-                    <div className="vt-period-pills">
-                      {(["week", "month"] as FeePeriod[]).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => setFeePeriod(p)}
-                          className={`vt-period-pill${feePeriod === p ? " active" : ""}`}
-                        >
-                          {p === "week" ? "Week" : "Month"}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="vt-stat-value">
-                      {formatInr(feePeriod === "week" ? (summary.fees_collected_this_week ?? 0) : (summary.fees_collected_this_month ?? 0))}
-                    </p>
-                    <p className="vt-stat-label">Collected</p>
-                  </div>
-                  <StatCard label="Fees pending" value={formatInr(summary.fees_pending ?? 0)} tone="warning" />
-                </>
-              ) : (
+              {!summary.can_view_fees && (
                 <>
                   <StatCard label="Tests this week" value={String(summary.tests_this_week)} tone="neutral" />
                   <StatCard
@@ -173,6 +154,98 @@ export default function DashboardHomePage() {
                 </>
               )}
             </StatGrid>
+
+            {summary.can_view_fees && (
+              <div style={{ marginBottom: 20 }}>
+                <p className="vt-section-title" style={{ marginBottom: 12 }}>Fee overview</p>
+
+                {/* Collected vs planned progress */}
+                {(summary.fees_total_planned ?? 0) > 0 && (
+                  <div
+                    style={{
+                      background: "var(--surface-0)",
+                      borderRadius: "var(--radius-lg)",
+                      padding: "16px",
+                      boxShadow: "var(--shadow-sm)",
+                      marginBottom: 10,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+                      <p style={{ fontSize: "13px", color: "var(--ink-500)" }}>Collected vs planned</p>
+                      <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "15px", color: "var(--ink-900)" }}>
+                        {summary.collection_rate_pct ?? 0}%
+                      </p>
+                    </div>
+                    {/* Progress bar */}
+                    <div style={{ height: 8, borderRadius: 4, background: "var(--ink-100)", overflow: "hidden", marginBottom: 10 }}>
+                      <div
+                        style={{
+                          height: "100%",
+                          borderRadius: 4,
+                          background: "var(--success)",
+                          width: `${Math.min(summary.collection_rate_pct ?? 0, 100)}%`,
+                          transition: "width 0.4s ease",
+                        }}
+                      />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <div>
+                        <p style={{ fontSize: "12px", color: "var(--ink-400)", marginBottom: 2 }}>Collected</p>
+                        <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "14px", color: "var(--success)" }}>
+                          {formatInr(summary.fees_collected ?? 0)}
+                        </p>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <p style={{ fontSize: "12px", color: "var(--ink-400)", marginBottom: 2 }}>Total planned</p>
+                        <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "14px", color: "var(--ink-700)" }}>
+                          {formatInr(summary.fees_total_planned ?? 0)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Due next week + overdue row */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div
+                    style={{
+                      background: "var(--surface-0)",
+                      borderRadius: "var(--radius-lg)",
+                      padding: "14px",
+                      boxShadow: "var(--shadow-sm)",
+                      border: "1px solid var(--warning-border)",
+                    }}
+                  >
+                    <p style={{ fontSize: "12px", color: "var(--ink-500)", marginBottom: 4 }}>Due next 7 days</p>
+                    <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "16px", color: "var(--warning)", marginBottom: 4 }}>
+                      {formatInr(summary.fees_due_next_week ?? 0)}
+                    </p>
+                    {summary.next_week_start && summary.next_week_end && (
+                      <p style={{ fontSize: "11px", color: "var(--ink-400)" }}>
+                        {formatShortDate(summary.next_week_start)} – {formatShortDate(summary.next_week_end)}
+                      </p>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      background: "var(--surface-0)",
+                      borderRadius: "var(--radius-lg)",
+                      padding: "14px",
+                      boxShadow: "var(--shadow-sm)",
+                      border: "1px solid var(--error-border)",
+                    }}
+                  >
+                    <p style={{ fontSize: "12px", color: "var(--ink-500)", marginBottom: 4 }}>Overdue</p>
+                    <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "16px", color: "var(--error)", marginBottom: 4 }}>
+                      {formatInr(summary.fees_pending ?? 0)}
+                    </p>
+                    <p style={{ fontSize: "11px", color: "var(--ink-400)" }}>
+                      {summary.fee_defaulters_count ?? 0} student{(summary.fee_defaulters_count ?? 0) !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {summary.attendance_trend.length > 0 && (
               <AttendanceTrend trend={summary.attendance_trend} />
@@ -207,17 +280,11 @@ export default function DashboardHomePage() {
               </>
             )}
 
-            <p className="vt-meta-line">
-              {summary.can_view_fees && summary.collection_rate_pct != null && (
-                <span className="vt-chip">{summary.collection_rate_pct}% collected</span>
-              )}
-              {summary.tests_this_week > 0 && (
-                <span style={{ marginLeft: summary.can_view_fees && summary.collection_rate_pct != null ? 8 : 0 }}>
-                  {summary.can_view_fees && summary.collection_rate_pct != null ? "· " : ""}
-                  {summary.tests_this_week} test{summary.tests_this_week === 1 ? "" : "s"} this week
-                </span>
-              )}
-            </p>
+            {summary.tests_this_week > 0 && (
+              <p className="vt-meta-line">
+                {summary.tests_this_week} test{summary.tests_this_week === 1 ? "" : "s"} this week
+              </p>
+            )}
 
             <p className="vt-section-title">Quick actions</p>
 

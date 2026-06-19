@@ -17,6 +17,7 @@ from app.core.security import hash_password, verify_password
 from app.core.tenant import institute_id_of, require_institute_user
 from app.db.session import get_db
 from app.models.fee import FeePlan, Installment
+from app.models.institute import Institute
 from app.models.student import Student
 from app.models.test_score import TestScore
 from app.models.test import Test
@@ -73,16 +74,12 @@ async def share_qr(
         # Return a sentinel so frontend knows to show "PIN already set" UI.
         plain_pin = "••••••"
 
-    from app.core.config import settings
-    portal_url = f"{settings.frontend_url}/parent/{student.parent_token}"
-
     return ShareQrResponse(
         token=student.parent_token,
         pin=plain_pin,
         student_name=student.full_name,
         parent_name=student.parent_name,
         parent_phone=student.parent_phone,
-        portal_url=portal_url,
     )
 
 
@@ -183,6 +180,15 @@ async def parent_view(
             next_due_date = next_inst.due_date.strftime("%d %b %Y").lstrip("0")
             next_due_amount = next_inst.amount
 
+    # ── Fetch institute drive URL ─────────────────────────────────────────────
+    notes_url: str | None = None
+    inst_result = await db.execute(
+        select(Institute).where(Institute.id == student.institute_id)
+    )
+    institute = inst_result.scalar_one_or_none()
+    if institute and institute.drive_url and student.class_name:
+        notes_url = f"https://drive.google.com/drive/search?q={student.class_name}"
+
     await db.commit()
 
     return ParentStudentView(
@@ -192,4 +198,5 @@ async def parent_view(
         fees_due=fees_due,
         next_due_date=next_due_date,
         next_due_amount=next_due_amount,
+        notes_url=notes_url,
     )

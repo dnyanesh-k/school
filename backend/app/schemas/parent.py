@@ -7,7 +7,6 @@ class ShareQrResponse(BaseModel):
     student_name: str
     parent_name: str
     parent_phone: str
-    portal_url: str     # full URL for the public page
 
 
 class PinVerifyRequest(BaseModel):
@@ -28,3 +27,4 @@ class ParentStudentView(BaseModel):
     fees_due: int = 0
     next_due_date: str | None = None   # "15 Jul 2025"
     next_due_amount: int | None = None
+    notes_url: str | None = None

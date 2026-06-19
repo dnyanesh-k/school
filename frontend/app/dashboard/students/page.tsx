@@ -15,7 +15,7 @@ import { feeService } from "@/services/feeService";
 import { authService } from "@/services/authService";
 import { admissionService } from "@/services/admissionService";
 import { StudentFormSheet } from "@/components/students/StudentFormSheet";
-import { StudentListItem } from "@/components/students/StudentListItem";
+import { StudentListItem, formatStudentName } from "@/components/students/StudentListItem";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
@@ -65,7 +65,7 @@ function FeeSheet({ student, onClose }: { student: Student | null; onClose: () =
   return (
     <BottomSheet open={Boolean(student)} onClose={onClose} title="Fee status">
       <p className="vt-section-subtitle" style={{ marginTop: -8, marginBottom: 20 }}>
-        {student.full_name}
+        {formatStudentName(student.full_name)}
       </p>
 
       {loading && <p style={{ textAlign: "center", color: "var(--ink-400)", padding: "32px 0" }}>Loading…</p>}
@@ -173,7 +173,7 @@ function FeeSheet({ student, onClose }: { student: Student | null; onClose: () =
                           student.parent_phone,
                           student.full_name,
                           inst.amount,
-                          formatDate(inst.due_date)
+                          inst.due_date
                         )}
                         target="_blank"
                         rel="noreferrer"
@@ -285,7 +285,7 @@ function ParentQrSheet({
 
   const waUrl = data
     ? `https://wa.me/${data.parent_phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-        `Hi ${data.parent_name}, scan this QR to view ${data.student_name.split(" ")[0]}'s school update.\n\nLink: ${data.portal_url}\nPIN: ${data.pin === "••••••" ? "(previously shared)" : data.pin}\n\n— VidyaTrack`
+        `Hi Dear Parent,\n\nYou can now view ${data.student_name.split(" ")[0]}'s attendance, test scores and fee details.\n\n👉 ${data.portal_url}\n\nPIN: ${data.pin === "••••••" ? "(previously shared)" : data.pin}\n\nEnter the PIN when prompted.`
       )}`
     : "#";
 
@@ -294,7 +294,7 @@ function ParentQrSheet({
   return (
     <BottomSheet open={Boolean(student)} onClose={onClose} title="Parent QR">
       <p className="vt-section-subtitle" style={{ marginTop: -8, marginBottom: 20 }}>
-        {student.full_name}
+        {formatStudentName(student.full_name)}
       </p>
 
       {loading && (

@@ -9,7 +9,7 @@ export interface ShareQrResult {
   student_name: string;
   parent_name: string;
   parent_phone: string;
-  portal_url: string;
+  portal_url: string;  // built on frontend from window.location.origin + /parent/{token}
 }
 
 export interface Student {
@@ -79,6 +79,10 @@ export const studentService = {
   async shareQr(id: number, regenerate = false): Promise<ShareQrResult> {
     const url = `${API_URLS.PARENT.SHARE_QR(id)}${regenerate ? "?regenerate=true" : ""}`;
     const response = await api.post(url);
-    return response.data;
+    const data = response.data;
+    return {
+      ...data,
+      portal_url: `${window.location.origin}/parent/${data.token}`,
+    };
   },
 };

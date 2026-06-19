@@ -18,6 +18,7 @@ from app.api.v1 import (
     holidays,
     installments,
     parent,
+    settings,
     students,
     subjects,
     tests,
@@ -45,6 +46,7 @@ v1_router.include_router(attendance.router, dependencies=INSTITUTE_AUTH)
 v1_router.include_router(holidays.router, dependencies=INSTITUTE_AUTH)
 v1_router.include_router(dashboard.router, dependencies=INSTITUTE_AUTH)
 v1_router.include_router(fees.router, dependencies=INSTITUTE_ADMIN_AUTH)
+v1_router.include_router(settings.router, dependencies=INSTITUTE_AUTH)
 v1_router.include_router(installments.router, dependencies=INSTITUTE_ADMIN_AUTH)
 
 # share-qr: institute user auth; public parent view: no auth

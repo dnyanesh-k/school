@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { API_URLS } from "@/config/urls";
 
 interface LastTest {
@@ -17,6 +17,7 @@ interface StudentView {
   fees_due: number;
   next_due_date: string | null;
   next_due_amount: number | null;
+  notes_url: string | null;
 }
 
 function getErrorMessage(error: unknown): string {
@@ -58,7 +59,8 @@ function ScoreBar({ obtained, total }: { obtained: number; total: number }) {
   );
 }
 
-export default function ParentPage({ params }: { params: { token: string } }) {
+export default function ParentPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = use(params);
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +72,7 @@ export default function ParentPage({ params }: { params: { token: string } }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API_URLS.PARENT.PUBLIC_VIEW(params.token), {
+      const res = await fetch(API_URLS.PARENT.PUBLIC_VIEW(token), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin }),
@@ -425,6 +427,17 @@ export default function ParentPage({ params }: { params: { token: string } }) {
               </div>
             )}
           </div>
+
+          {/* Class Notes — hidden until Drive sharing strategy is decided
+          {view.notes_url && (
+            <a href={view.notes_url} target="_blank" rel="noreferrer" style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, padding:"14px 16px", borderRadius:"var(--radius-lg)", background:"var(--surface-0)", border:"1px solid var(--ink-200)", boxShadow:"var(--shadow-sm)", textDecoration:"none" }}>
+              <div>
+                <p style={{ fontSize:13, fontWeight:600, color:"var(--ink-900)" }}>{view.class_name} — Class Notes</p>
+                <p style={{ fontSize:11, color:"var(--ink-500)", marginTop:2 }}>Open notes folder on Google Drive</p>
+              </div>
+            </a>
+          )}
+          */}
 
           {/* Footer */}
           <p

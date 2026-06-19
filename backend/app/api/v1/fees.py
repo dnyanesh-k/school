@@ -57,15 +57,14 @@ async def get_fee_plan(
 @router.get("/defaulters", response_model=PaginatedResponse[DefaulterOut])
 async def get_defaulters(
     class_id: int | None = None,
+    filter: str = Query("overdue", pattern="^(overdue|due_soon)$"),
     page: int = Query(DEFAULT_PAGE, ge=1),
     page_size: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=50),
     current_user: User = Depends(require_institute_user),
     db: AsyncSession = Depends(get_db),
 ):
     service = FeeService(db)
-    return await service.get_defaulters_paginated(
-        institute_id_of(current_user),
-        class_id,
-        page=page,
-        page_size=page_size,
-    )
+    institute_id = institute_id_of(current_user)
+    if filter == "due_soon":
+        return await service.get_due_soon_paginated(institute_id, class_id, page=page, page_size=page_size)
+    return await service.get_defaulters_paginated(institute_id, class_id, page=page, page_size=page_size)

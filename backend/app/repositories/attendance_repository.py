@@ -147,3 +147,13 @@ class AttendanceRepository:
             await self.db.refresh(item)
 
         return saved
+
+    async def attendance_days_per_institute(self, since: date) -> dict[int, int]:
+        """Distinct days any attendance was marked per institute since `since`."""
+        result = await self.db.execute(
+            select(Student.institute_id, func.count(func.distinct(Attendance.attendance_date)))
+            .join(Student, Attendance.student_id == Student.id)
+            .where(Attendance.attendance_date >= since)
+            .group_by(Student.institute_id)
+        )
+        return {institute_id: count for institute_id, count in result.all()}

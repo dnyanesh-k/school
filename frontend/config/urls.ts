@@ -65,4 +65,7 @@ export const API_URLS = {
     SHARE_QR:      (studentId: number) => `${BASE_URL}/students/${studentId}/share-qr`,
     PUBLIC_VIEW:   (token: string)     => `${BASE_URL}/public/parent/${token}`,
   },
+  SETTINGS: {
+    INSTITUTE:     `${BASE_URL}/settings/institute`,
+  },
 };

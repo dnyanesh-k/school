@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Student } from "@/services/studentService";
 
 function getInitials(name: string) {
@@ -10,6 +10,18 @@ function getInitials(name: string) {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+}
+
+/**
+ * "Dnyaneshwar Ramesh Kanake" → "Dnyaneshwar R. Kanake"
+ * "Arjun Singh"               → "Arjun Singh"
+ * "Arjun"                     → "Arjun"
+ */
+export function formatStudentName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length <= 2) return parts.join(" ");
+  const middle = parts.slice(1, -1).map((p) => `${p[0].toUpperCase()}.`).join(" ");
+  return `${parts[0]} ${middle} ${parts[parts.length - 1]}`;
 }
 
 function formatDate(dateStr: string) {
@@ -34,14 +46,25 @@ export function StudentListItem({
   onShareQr?: () => void;
 }) {
   const [showMenu, setShowMenu] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<0 | 1>(0);
   const [deleting, setDeleting] = useState(false);
 
-  const handleDelete = async () => {
+  // Auto-reset warning state if menu closes or user walks away
+  useEffect(() => {
+    if (!showMenu) setDeleteStep(0);
+  }, [showMenu]);
+
+  const handleDeleteClick = async () => {
+    if (deleteStep === 0) {
+      setDeleteStep(1);
+      return;
+    }
     setDeleting(true);
     try {
       await onDelete(() => setShowMenu(false));
     } finally {
       setDeleting(false);
+      setDeleteStep(0);
     }
   };
 
@@ -55,7 +78,7 @@ export function StudentListItem({
       >
         <div className="vt-student-avatar">{getInitials(student.full_name)}</div>
         <div className="vt-student-info">
-          <p className="vt-student-name">{student.full_name}</p>
+          <p className="vt-student-name">{formatStudentName(student.full_name)}</p>
           <p className="vt-student-meta">
             {student.class_name ?? "Class"} · Admitted {formatDate(student.admission_date)}
           </p>
@@ -126,21 +149,28 @@ export function StudentListItem({
               <div className="vt-card vt-student-menu">
                 <button
                   type="button"
-                  onClick={() => {
-                    onEdit();
-                    setShowMenu(false);
-                  }}
+                  onClick={() => { onEdit(); setShowMenu(false); }}
                   className="vt-student-menu-item"
                 >
                   Edit
                 </button>
                 <button
                   type="button"
-                  onClick={handleDelete}
+                  onClick={handleDeleteClick}
                   disabled={deleting}
                   className="vt-student-menu-item is-danger"
+                  style={deleteStep === 1 ? {
+                    background: "#fff7ed",
+                    color: "#c2410c",
+                    borderColor: "#fb923c",
+                    fontWeight: 700,
+                  } : undefined}
                 >
-                  {deleting ? "Removing..." : "Remove student"}
+                  {deleting
+                    ? "Removing…"
+                    : deleteStep === 1
+                    ? "Tap again to confirm"
+                    : "Remove student"}
                 </button>
               </div>
             </>
