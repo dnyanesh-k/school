@@ -37,6 +37,7 @@ class DashboardService:
         fees_collected_this_week = None
         fees_total_planned = None
         fees_pending = None
+        fees_overdue = None
         fees_due_next_week = None
         collection_rate_pct = None
         fee_defaulters_count = None
