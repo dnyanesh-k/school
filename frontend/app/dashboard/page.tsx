@@ -237,7 +237,7 @@ export default function DashboardHomePage() {
                   >
                     <p style={{ fontSize: "12px", color: "var(--ink-500)", marginBottom: 4 }}>Overdue</p>
                     <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "16px", color: "var(--error)", marginBottom: 4 }}>
-                      {formatInr(summary.fees_pending ?? 0)}
+                      {formatInr(summary.fees_overdue ?? 0)}
                     </p>
                     <p style={{ fontSize: "11px", color: "var(--ink-400)" }}>
                       {summary.fee_defaulters_count ?? 0} student{(summary.fee_defaulters_count ?? 0) !== 1 ? "s" : ""}

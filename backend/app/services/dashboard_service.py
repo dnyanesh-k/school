@@ -117,7 +117,10 @@ class DashboardService:
                 if item.fee_plan and item.fee_plan.student and item.fee_plan.student.is_active
             }
             fee_defaulters_count = len(defaulter_student_ids)
-
+            fees_overdue = sum(
+                installment.amount
+                for installment in overdue_installments
+            )
         records = await self.attendance_repo.get_for_date(today, institute_id)
         absent_ids = {record.student_id for record in records if record.status == "absent"}
         absent_today_count = len(absent_ids)
@@ -166,6 +169,7 @@ class DashboardService:
             fees_collected_this_week=fees_collected_this_week,
             fees_total_planned=fees_total_planned,
             fees_pending=fees_pending,
+            fees_overdue=fees_overdue,
             fees_due_next_week=fees_due_next_week,
             next_week_start=next_week_start if include_fees else None,
             next_week_end=next_week_end if include_fees else None,

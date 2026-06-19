@@ -25,6 +25,7 @@ export interface DashboardSummary {
   fee_defaulters_count: number | null;
   tests_this_week: number;
   tests_pending_scores: number;
+  fees_overdue:number;
 }
 
 export function getErrorMessage(error: unknown, fallback: string): string {
