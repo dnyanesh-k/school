@@ -35,9 +35,13 @@ class DashboardService:
         fees_collected = None
         fees_collected_this_month = None
         fees_collected_this_week = None
+        fees_total_planned = None
         fees_pending = None
+        fees_due_next_week = None
         collection_rate_pct = None
         fee_defaulters_count = None
+        next_week_start = today + timedelta(days=1)
+        next_week_end = today + timedelta(days=7)
 
         if include_fees:
             fee_result = await self.db.execute(
@@ -54,10 +58,27 @@ class DashboardService:
             paid_total, fee_total = fee_result.one()
             fees_collected = int(paid_total or 0)
             fee_total_int = int(fee_total or 0)
+            fees_total_planned = fee_total_int
             fees_pending = max(fee_total_int - fees_collected, 0)
             collection_rate_pct = (
                 round((fees_collected / fee_total_int) * 100, 1) if fee_total_int > 0 else 0.0
             )
+
+            due_next_week_result = await self.db.execute(
+                select(func.coalesce(func.sum(Installment.amount), 0))
+                .join(FeePlan, Installment.fee_plan_id == FeePlan.id)
+                .join(Student, FeePlan.student_id == Student.id)
+                .where(
+                    Student.institute_id == institute_id,
+                    Student.is_active == True,
+                    FeePlan.is_deleted == False,
+                    Installment.is_deleted == False,
+                    Installment.status != "paid",
+                    Installment.due_date > today,
+                    Installment.due_date <= next_week_end,
+                )
+            )
+            fees_due_next_week = int(due_next_week_result.scalar() or 0)
 
             month_collected_result = await self.db.execute(
                 select(func.coalesce(func.sum(Installment.paid_amount), 0))
@@ -96,7 +117,10 @@ class DashboardService:
                 if item.fee_plan and item.fee_plan.student and item.fee_plan.student.is_active
             }
             fee_defaulters_count = len(defaulter_student_ids)
-
+            fees_overdue = sum(
+                installment.amount
+                for installment in overdue_installments
+            )
         records = await self.attendance_repo.get_for_date(today, institute_id)
         absent_ids = {record.student_id for record in records if record.status == "absent"}
         absent_today_count = len(absent_ids)
@@ -143,7 +167,12 @@ class DashboardService:
             fees_collected=fees_collected,
             fees_collected_this_month=fees_collected_this_month,
             fees_collected_this_week=fees_collected_this_week,
+            fees_total_planned=fees_total_planned,
             fees_pending=fees_pending,
+            fees_overdue=fees_overdue,
+            fees_due_next_week=fees_due_next_week,
+            next_week_start=next_week_start if include_fees else None,
+            next_week_end=next_week_end if include_fees else None,
             collection_rate_pct=collection_rate_pct,
             fee_defaulters_count=fee_defaulters_count,
             tests_this_week=tests_this_week,

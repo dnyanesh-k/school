@@ -24,6 +24,7 @@ import {
 import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
 import { authService } from "@/services/authService";
+import { formatStudentName } from "@/components/students/StudentListItem";
 
 interface ClassOption {
   id: number;
@@ -213,7 +214,11 @@ function StudentFeeRow({
   );
 }
 
-function DefaulterRow({ defaulter }: { defaulter: Defaulter }) {
+function DefaulterRow({ defaulter, dueSoon = false }: { defaulter: Defaulter; dueSoon?: boolean }) {
+  const borderColor = dueSoon ? "var(--warning-border)" : "var(--error-border)";
+  const avatarBg   = dueSoon ? "var(--warning-bg)"    : "var(--error-bg)";
+  const amountColor = dueSoon ? "var(--warning)"       : "var(--error)";
+
   return (
     <div
       style={{
@@ -224,7 +229,7 @@ function DefaulterRow({ defaulter }: { defaulter: Defaulter }) {
         background: "var(--surface-0)",
         borderRadius: "var(--radius-lg)",
         boxShadow: "var(--shadow-sm)",
-        border: "1px solid var(--error-border)",
+        border: `1px solid ${borderColor}`,
       }}
     >
       <div
@@ -232,14 +237,14 @@ function DefaulterRow({ defaulter }: { defaulter: Defaulter }) {
           width: 42,
           height: 42,
           borderRadius: "50%",
-          background: "var(--error-bg)",
+          background: avatarBg,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
         }}
       >
-        <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "13px", color: "var(--error)" }}>
+        <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "13px", color: amountColor }}>
           {getInitials(defaulter.student_name)}
         </span>
       </div>
@@ -266,7 +271,7 @@ function DefaulterRow({ defaulter }: { defaulter: Defaulter }) {
           style={{
             fontSize: "13px",
             fontWeight: 700,
-            color: "var(--error)",
+            color: amountColor,
             fontFamily: "var(--font-display)",
           }}
         >
@@ -276,12 +281,10 @@ function DefaulterRow({ defaulter }: { defaulter: Defaulter }) {
 
       {/* WhatsApp remind */}
       <a
-        href={feeService.buildWhatsAppUrl(
-          defaulter.parent_phone,
-          defaulter.student_name,
-          defaulter.pending_amount,
-          defaulter.due_date
-        )}
+        href={dueSoon
+          ? feeService.buildDueSoonWhatsAppUrl(defaulter.parent_phone, defaulter.student_name, defaulter.pending_amount, defaulter.due_date)
+          : feeService.buildWhatsAppUrl(defaulter.parent_phone, defaulter.student_name, defaulter.pending_amount, defaulter.due_date)
+        }
         target="_blank"
         rel="noreferrer"
         aria-label={`WhatsApp parent of ${defaulter.student_name}`}
@@ -350,6 +353,7 @@ export default function FeesPage() {
   const [defaulterPage, setDefaulterPage] = useState(1);
   const [defaulterTotalPages, setDefaulterTotalPages] = useState(1);
   const [defaulterTotal, setDefaulterTotal] = useState(0);
+  const [defaulterFilter, setDefaulterFilter] = useState<"overdue" | "due_soon">("overdue");
   const [studentsWithoutPlan, setStudentsWithoutPlan] = useState<{ id: number; name: string; class_name: string }[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [loadingOverview, setLoadingOverview] = useState(false);
@@ -398,7 +402,7 @@ export default function FeesPage() {
   const loadDefaulters = useCallback(async () => {
     setLoadingDefaulters(true);
     try {
-      const data = await feeService.getDefaulters(selectedClass ?? undefined, defaulterPage, DEFAULT_PAGE_SIZE);
+      const data = await feeService.getDefaulters(selectedClass ?? undefined, defaulterPage, DEFAULT_PAGE_SIZE, defaulterFilter);
       setDefaulters(data.items);
       setDefaulterTotalPages(data.total_pages);
       setDefaulterTotal(data.total);
@@ -408,7 +412,7 @@ export default function FeesPage() {
     } finally {
       setLoadingDefaulters(false);
     }
-  }, [selectedClass, defaulterPage, showToast]);
+  }, [selectedClass, defaulterPage, defaulterFilter, showToast]);
 
   const loadStudentsWithoutPlan = useCallback(async () => {
     try {
@@ -418,7 +422,7 @@ export default function FeesPage() {
           .filter((item) => !item.has_plan)
           .map((item) => ({
             id: item.student_id,
-            name: item.student_name,
+            name: formatStudentName(item.student_name),
             class_name: item.class_name,
           })),
       );
@@ -435,6 +439,10 @@ export default function FeesPage() {
     setOverviewPage(1);
     setDefaulterPage(1);
   }, [selectedClass]);
+
+  useEffect(() => {
+    setDefaulterPage(1);
+  }, [defaulterFilter]);
 
   useEffect(() => {
     if (activeView === "overview") loadOverview();
@@ -543,20 +551,51 @@ export default function FeesPage() {
 
           {activeView === "defaulters" && (
             <div style={{ paddingBottom: 24 }}>
+              {/* Filter pills */}
+              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                {([
+                  { value: "overdue",  label: "Overdue",       bg: "var(--error-bg)",   border: "var(--error-border)",   text: "var(--error)" },
+                  { value: "due_soon", label: "Due this week",  bg: "var(--warning-bg)", border: "var(--warning-border)", text: "var(--warning)" },
+                ] as const).map((f) => {
+                  const active = defaulterFilter === f.value;
+                  return (
+                    <button
+                      key={f.value}
+                      type="button"
+                      onClick={() => setDefaulterFilter(f.value)}
+                      style={{
+                        height: 32,
+                        padding: "0 14px",
+                        borderRadius: "var(--radius-full)",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        border: `1.5px solid ${active ? f.border : "var(--ink-200)"}`,
+                        background: active ? f.bg : "transparent",
+                        color: active ? f.text : "var(--ink-500)",
+                        cursor: "pointer",
+                        transition: "all var(--transition-fast)",
+                      }}
+                    >
+                      {f.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Description banner */}
               <div
                 style={{
-                  padding: "14px 16px",
-                  borderRadius: "var(--radius-lg)",
-                  background: "var(--error-bg)",
-                  border: "1px solid var(--error-border)",
+                  padding: "12px 16px",
+                  borderRadius: "var(--radius-md)",
+                  background: defaulterFilter === "overdue" ? "var(--error-bg)" : "var(--warning-bg)",
+                  border: `1px solid ${defaulterFilter === "overdue" ? "var(--error-border)" : "var(--warning-border)"}`,
                   marginBottom: 16,
                 }}
               >
-                <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "15px", color: "var(--ink-900)", marginBottom: 4 }}>
-                  Overdue fees
-                </p>
-                <p style={{ fontSize: "13px", color: "var(--ink-500)", lineHeight: 1.5 }}>
-                  Students with unpaid installments due today or earlier. Tap Remind to WhatsApp the parent.
+                <p style={{ fontSize: "13px", color: "var(--ink-600)", lineHeight: 1.5 }}>
+                  {defaulterFilter === "overdue"
+                    ? "Unpaid installments already past due date. Tap Remind to WhatsApp the parent."
+                    : "Installments due in the next 7 days. Send a reminder before they become overdue."}
                 </p>
               </div>
 
@@ -589,20 +628,26 @@ export default function FeesPage() {
                     </svg>
                   </div>
                   <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: "15px", color: "var(--ink-900)", marginBottom: 6 }}>
-                    All fees on track
+                    {defaulterFilter === "overdue" ? "All fees on track" : "Nothing due this week"}
                   </p>
                   <p style={{ fontSize: "13px", color: "var(--ink-500)", lineHeight: 1.5 }}>
-                    No overdue installments for the selected class.
+                    {defaulterFilter === "overdue"
+                      ? "No overdue installments for the selected class."
+                      : "No installments due in the next 7 days."}
                   </p>
                 </div>
               ) : (
                 <>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <p style={{ fontSize: "12px", color: "var(--ink-400)" }}>
-                      {defaulterTotal} defaulter{defaulterTotal !== 1 ? "s" : ""}
+                      {defaulterTotal} student{defaulterTotal !== 1 ? "s" : ""}
                     </p>
                     {defaulters.map((defaulter) => (
-                      <DefaulterRow key={`${defaulter.student_id}-${defaulter.installment_id}`} defaulter={defaulter} />
+                      <DefaulterRow
+                        key={`${defaulter.student_id}-${defaulter.installment_id}`}
+                        defaulter={defaulter}
+                        dueSoon={defaulterFilter === "due_soon"}
+                      />
                     ))}
                   </div>
                   <Pagination

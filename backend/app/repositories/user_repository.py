@@ -42,6 +42,24 @@ class UserRepository:
         )
         return list(result.scalars().all())
 
+    async def list_by_institute_ids(self, institute_ids: list[int]) -> dict[int, list[User]]:
+        """Batch load users for multiple institutes in a single query."""
+        if not institute_ids:
+            return {}
+        result = await self.db.execute(
+            select(User)
+            .where(
+                User.institute_id.in_(institute_ids),
+                User.is_deleted == False,
+            )
+            .order_by(User.full_name)
+        )
+        users = result.scalars().all()
+        grouped: dict[int, list[User]] = {}
+        for user in users:
+            grouped.setdefault(user.institute_id, []).append(user)
+        return grouped
+
     async def delete(self, user: User) -> None:
         user.is_active = False
         await soft_delete(self.db, user)

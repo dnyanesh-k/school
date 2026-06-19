@@ -127,8 +127,9 @@ export const feeService = {
     classId?: number,
     page = 1,
     pageSize = DEFAULT_PAGE_SIZE,
+    filter: "overdue" | "due_soon" = "overdue",
   ): Promise<PaginatedResult<Defaulter>> {
-    const params: Record<string, string | number> = { page, page_size: pageSize };
+    const params: Record<string, string | number> = { page, page_size: pageSize, filter };
     if (classId) params.class_id = classId;
     const response = await api.get(API_URLS.FEES.DEFAULTERS, { params });
     return response.data as PaginatedResult<Defaulter>;
@@ -136,6 +137,11 @@ export const feeService = {
 
   buildWhatsAppUrl(phone: string, studentName: string, pendingAmount: number, dueDate: string): string {
     const msg = `Dear Parent, fees of ${formatInr(pendingAmount)} for ${studentName} was due on ${formatDate(dueDate)}. Please pay at the earliest.`;
+    return buildWaMeUrl(phone, msg);
+  },
+
+  buildDueSoonWhatsAppUrl(phone: string, studentName: string, pendingAmount: number, dueDate: string): string {
+    const msg = `Dear Parent, fees of ${formatInr(pendingAmount)} for ${studentName} is due on ${formatDate(dueDate)}. Please arrange payment on time.`;
     return buildWaMeUrl(phone, msg);
   },
 };

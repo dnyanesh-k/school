@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/common/BottomSheet";
 import { ItemCard } from "@/components/common/ItemCard";
 import { useToast } from "@/hooks/useToast";
+import api from "@/lib/axios";
+import { API_URLS } from "@/config/urls";
 import { classService } from "@/services/classService";
 import { testService, type Test, type CreateTestPayload } from "@/services/testService";
 import { subjectService, type Subject } from "@/services/subjectService";
@@ -408,6 +410,10 @@ function SettingsPageContent() {
     const [loading, setLoading] = useState(true);
     const [showSheet, setShowSheet] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
+    const [driveUrl, setDriveUrl] = useState("");
+    const [driveInput, setDriveInput] = useState("");
+    const [savingDrive, setSavingDrive] = useState(false);
+    const [driveConfigOpen, setDriveConfigOpen] = useState(false);
 
     useEffect(() => {
         const tab = searchParams.get("tab");
@@ -423,6 +429,33 @@ function SettingsPageContent() {
             setClasses(data);
         } catch (error) {
             showToast("Could not load classes. Please refresh.", "error");
+        }
+    };
+
+    // Fetch and save Drive URL
+    const fetchDriveUrl = async () => {
+        try {
+            const res = await api.get(API_URLS.SETTINGS.INSTITUTE);
+            const url: string = res.data.drive_url ?? "";
+            setDriveUrl(url);
+            setDriveInput(url);
+        } catch {
+            // non-critical, silently ignore
+        }
+    };
+
+    const saveDriveUrl = async () => {
+        setSavingDrive(true);
+        try {
+            const res = await api.patch(API_URLS.SETTINGS.INSTITUTE, { drive_url: driveInput.trim() || null });
+            const url: string = res.data.drive_url ?? "";
+            setDriveUrl(url);
+            setDriveInput(url);
+            showToast("Drive link saved", "success");
+        } catch {
+            showToast("Could not save Drive link", "error");
+        } finally {
+            setSavingDrive(false);
         }
     };
 
@@ -461,7 +494,7 @@ function SettingsPageContent() {
             setLoading(true);
             try {
                 if (activeTab === "classes") {
-                    await fetchClasses();
+                    await Promise.all([fetchClasses(), fetchDriveUrl()]);
                     return;
                 }
 
@@ -640,6 +673,7 @@ function SettingsPageContent() {
                                             icon="📚"
                                             title={classItem.name}
                                             subtitle="Ready for students"
+                                            driveHref={driveUrl ? `https://drive.google.com/drive/search?q=${encodeURIComponent(classItem.name)}` : undefined}
                                             onEdit={() => handleEdit(classItem)}
                                             onDelete={async (onSuccess) => {
                                                 await classService.remove(classItem.id);
@@ -650,6 +684,76 @@ function SettingsPageContent() {
                                     ))}
                             </div>
                         )}
+
+                        {/* Drive config — collapsed by default */}
+                        <div style={{ marginTop: 24 }}>
+                            <button
+                                type="button"
+                                onClick={() => setDriveConfigOpen((o) => !o)}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                    background: "none",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    padding: "6px 0",
+                                    color: "var(--ink-500)",
+                                    fontSize: "13px",
+                                    fontFamily: "var(--font-body)",
+                                }}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+                                    <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L27.5 53H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                                    <path d="M43.65 25L29.9 1.2C28.55 2 27.4 3.1 26.6 4.5L1.2 48.5A9.06 9.06 0 000 53h27.5z" fill="#00ac47"/>
+                                    <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.85 11.25z" fill="#ea4335"/>
+                                    <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                                    <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+                                    <path d="M73.4 26.5l-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                                </svg>
+                                Configure Drive link
+                                <svg
+                                    width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                    style={{ transition: "transform 0.2s", transform: driveConfigOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                                >
+                                    <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </button>
+
+                            {driveConfigOpen && (
+                                <div
+                                    style={{
+                                        marginTop: 10,
+                                        background: "var(--surface-0)",
+                                        borderRadius: "var(--radius-lg)",
+                                        border: "1px solid var(--ink-200)",
+                                        padding: "14px 16px",
+                                        boxShadow: "var(--shadow-sm)",
+                                    }}
+                                >
+                                    <p style={{ fontSize: "12px", color: "var(--ink-500)", marginBottom: 10, lineHeight: 1.5 }}>
+                                        Paste your Google Drive folder link. Create one sub-folder per class with the same name — each class card will show a Drive shortcut.
+                                    </p>
+                                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                                        <div style={{ flex: 1 }}>
+                                            <Input
+                                                value={driveInput}
+                                                onChange={(v) => setDriveInput(v)}
+                                                placeholder="https://drive.google.com/drive/folders/..."
+                                            />
+                                        </div>
+                                        <Button
+                                            variant="primary"
+                                            onClick={saveDriveUrl}
+                                            loading={savingDrive}
+                                            disabled={driveInput.trim() === driveUrl}
+                                        >
+                                            Save
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </>
                 )}
 

@@ -116,6 +116,31 @@ class FeeRepository:
         )
         return list(result.scalars().all())
 
+    async def get_due_soon_installments(
+        self, from_date: date, to_date: date, institute_id: int
+    ) -> list[Installment]:
+        """Pending installments with due_date in (from_date, to_date] — not yet overdue."""
+        result = await self.db.execute(
+            select(Installment)
+            .join(FeePlan, Installment.fee_plan_id == FeePlan.id)
+            .join(Student, FeePlan.student_id == Student.id)
+            .options(
+                selectinload(Installment.fee_plan)
+                .selectinload(FeePlan.student)
+                .selectinload(Student.class_),
+            )
+            .where(
+                Installment.status != "paid",
+                Installment.is_deleted == False,
+                FeePlan.is_deleted == False,
+                Installment.due_date > from_date,
+                Installment.due_date <= to_date,
+                Student.institute_id == institute_id,
+            )
+            .order_by(Installment.due_date)
+        )
+        return list(result.scalars().all())
+
     async def delete_plan(self, fee_plan: FeePlan) -> None:
         for installment in fee_plan.installments:
             installment.is_deleted = True

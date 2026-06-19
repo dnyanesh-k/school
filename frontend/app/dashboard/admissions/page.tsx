@@ -50,6 +50,13 @@ function getInitials(name: string) {
   return name.split(" ").map((p) => p[0]).join("").toUpperCase().slice(0, 2);
 }
 
+function formatName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length <= 2) return parts.join(" ");
+  const middle = parts.slice(1, -1).map((p) => `${p[0].toUpperCase()}.`).join(" ");
+  return `${parts[0]} ${middle} ${parts[parts.length - 1]}`;
+}
+
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-IN", {
     day: "2-digit",
@@ -125,16 +132,43 @@ function AdmissionCard({
       >
         <div className="vt-student-avatar">{getInitials(admission.candidate_name)}</div>
         <div className="vt-student-info">
-          <p className="vt-student-name">{admission.candidate_name}</p>
+          <p className="vt-student-name">{formatName(admission.candidate_name)}</p>
           <p className="vt-student-meta">
             {admission.class_name ?? "—"} · {formatDate(admission.visit_date)}
           </p>
-          {/* Status pill lives here — inside the shrinkable left column, never in actions */}
           <StatusPill status={admission.status} />
         </div>
       </button>
 
       <div className="vt-student-card-actions">
+        {(admission.status === "inquiry" || admission.status === "follow_up") && admission.phone && (
+          <a
+            href={`tel:${admission.phone.replace(/\D/g, "")}`}
+            aria-label={`Call ${admission.parent_name}`}
+            title={`Call ${admission.phone}`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 32,
+              height: 32,
+              borderRadius: "var(--radius-sm)",
+              background: "var(--success-bg)",
+              border: "1.5px solid var(--success-border)",
+              color: "var(--success)",
+              flexShrink: 0,
+              textDecoration: "none",
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.58a1 1 0 01-.24 1.01l-2.21 2.2z"
+                fill="currentColor"
+              />
+            </svg>
+          </a>
+        )}
+
         {canConvert && (
           <button
             type="button"

@@ -1944,7 +1944,7 @@ input[type="number"] {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 0 20px 16px;
+  padding: 10px 20px 16px;
 }
 
 .vt-bottom-sheet-footer {

@@ -22,6 +22,7 @@ class InstituteOut(BaseModel):
     created_at: datetime
     admin: Optional[InstituteAdminOut] = None
     student_count: int = 0
+    attendance_days_last_7: int = 0
 
     model_config = {"from_attributes": True}
 
@@ -37,6 +38,8 @@ class AdminStatsOut(BaseModel):
     rejected: int
     suspended: int
     total_students: int
+    institutes_used_this_week: int
+    total_fees_collected: int
 
 
 class InstituteStatusUpdateResponse(BaseModel):

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -170,6 +170,45 @@ class FeeService:
     ) -> PaginatedResponse[DefaulterOut]:
         page, page_size, _ = slice_page(page, page_size)
         all_items = await self.get_defaulters(institute_id, class_id)
+        total = len(all_items)
+        start = (page - 1) * page_size
+        items = all_items[start : start + page_size]
+        return build_paginated(items, total, page, page_size)
+
+    async def get_due_soon(self, institute_id: int, class_id: int | None = None) -> list[DefaulterOut]:
+        today = date.today()
+        in_7_days = today + timedelta(days=7)
+        installments = await self.repo.get_due_soon_installments(today, in_7_days, institute_id)
+
+        result: list[DefaulterOut] = []
+        for installment in installments:
+            student = installment.fee_plan.student
+            if not student or not student.is_active:
+                continue
+            if class_id is not None and student.class_id != class_id:
+                continue
+            result.append(
+                DefaulterOut(
+                    student_id=student.id,
+                    student_name=student.full_name,
+                    class_name=student.class_name or "",
+                    parent_phone=student.parent_phone,
+                    pending_amount=installment.amount,
+                    due_date=installment.due_date,
+                    installment_id=installment.id,
+                )
+            )
+        return result
+
+    async def get_due_soon_paginated(
+        self,
+        institute_id: int,
+        class_id: int | None = None,
+        page: int = DEFAULT_PAGE,
+        page_size: int = DEFAULT_PAGE_SIZE,
+    ) -> PaginatedResponse[DefaulterOut]:
+        page, page_size, _ = slice_page(page, page_size)
+        all_items = await self.get_due_soon(institute_id, class_id)
         total = len(all_items)
         start = (page - 1) * page_size
         items = all_items[start : start + page_size]

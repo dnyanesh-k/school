@@ -16,11 +16,16 @@ export interface DashboardSummary {
   fees_collected: number | null;
   fees_collected_this_month: number | null;
   fees_collected_this_week: number | null;
+  fees_total_planned: number | null;
   fees_pending: number | null;
+  fees_due_next_week: number | null;
+  next_week_start: string | null;
+  next_week_end: string | null;
   collection_rate_pct: number | null;
   fee_defaulters_count: number | null;
   tests_this_week: number;
   tests_pending_scores: number;
+  fees_overdue:number;
 }
 
 export function getErrorMessage(error: unknown, fallback: string): string {

@@ -24,6 +24,13 @@ class Student(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
 
+    # Parent portal access
+    parent_token = Column(String(36), unique=True, nullable=True, index=True)
+    parent_pin_hash = Column(String, nullable=True)
+    parent_scan_count = Column(Integer, nullable=False, server_default="0")
+    parent_scan_date = Column(Date, nullable=True)   # IST date of last successful scan
+    parent_pin_attempts = Column(Integer, nullable=False, server_default="0")  # wrong PIN attempts today
+
     institute = relationship("Institute")
     class_ = relationship("Class", back_populates="students")
     fee_plan = relationship("FeePlan", back_populates="student", uselist=False)

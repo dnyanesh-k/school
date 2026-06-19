@@ -15,6 +15,7 @@ export interface InstituteRecord {
   status: string;
   created_at: string;
   student_count: number;
+  attendance_days_last_7: number;
   admin?: {
     id: number;
     full_name: string;
@@ -29,6 +30,8 @@ export interface AdminStats {
   rejected: number;
   suspended: number;
   total_students: number;
+  institutes_used_this_week: number;
+  total_fees_collected: number;
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {

@@ -6,7 +6,7 @@ import { Pagination } from "@/components/common/Pagination";
 import { adminService, getErrorMessage, type AdminStats, type InstituteRecord } from "@/services/adminService";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
-type FilterStatus = "all" | "pending" | "active" | "rejected" | "suspended";
+type FilterStatus = "all" | "pending" | "active" | "suspended";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-IN", {
@@ -61,6 +61,12 @@ function InstituteCard({
           Registered {formatDate(institute.created_at)}
           {" · "}
           <strong style={{ color: "var(--ink-600)" }}>{institute.student_count}</strong> student{institute.student_count !== 1 ? "s" : ""}
+          {" · "}
+          <span style={{ color: institute.attendance_days_last_7 > 0 ? "var(--success)" : "var(--ink-400)", fontWeight: 600 }}>
+            {institute.attendance_days_last_7 > 0
+              ? `Active ${institute.attendance_days_last_7}d this week`
+              : "No activity this week"}
+          </span>
         </p>
       </div>
 
@@ -177,7 +183,6 @@ export default function AdminPage() {
     { id: "pending", label: "Pending" },
     { id: "active", label: "Active" },
     { id: "suspended", label: "Disabled" },
-    { id: "rejected", label: "Rejected" },
     { id: "all", label: "All" },
   ];
 
@@ -199,6 +204,8 @@ export default function AdminPage() {
             { label: "Active", value: stats.active, color: "var(--success)" },
             { label: "Pending", value: stats.pending, color: "#c2410c" },
             { label: "Students", value: stats.total_students, color: "var(--brand-primary)" },
+            { label: "Used this week", value: stats.institutes_used_this_week, color: "#7c3aed" },
+            { label: "Fees collected", value: `₹${stats.total_fees_collected.toLocaleString("en-IN")}`, color: "var(--success)" },
           ].map((s) => (
             <div key={s.label} style={{ background: "var(--surface-0)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", padding: "10px 16px", minWidth: 80, textAlign: "center", boxShadow: "var(--shadow-sm)" }}>
               <p style={{ fontSize: 20, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</p>
