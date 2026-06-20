@@ -32,6 +32,8 @@ class FeeService:
         today = as_of or date.today()
         if installment.status == "paid" or installment.paid_date:
             return "paid"
+        if installment.status == "partial":
+            return "partial"
         if installment.due_date <= today:
             return "overdue"
         return "pending"
@@ -123,9 +125,42 @@ class FeeService:
         fee_plan = installment.fee_plan
         today = date.today()
 
-        installment.status = "paid"
-        installment.paid_date = today
-        installment.paid_amount = amount
+        plan_remaining = fee_plan.total_amount - fee_plan.paid_amount
+        if amount > plan_remaining:
+            raise ValidationError(
+                f"Amount exceeds plan balance. Maximum payable is ₹{plan_remaining}."
+            )
+
+        # Apply payment starting from clicked installment, overflow to later ones only.
+        # Earlier unpaid installments are never touched — teacher must pay them explicitly.
+        all_unpaid = sorted(
+            [i for i in fee_plan.installments if i.status != "paid" and not i.paid_date],
+            key=lambda i: i.due_date,
+        )
+        clicked_due = installment.due_date
+        to_process = [i for i in all_unpaid if i.due_date >= clicked_due]
+
+        max_distributable = sum(i.amount - (i.paid_amount or 0) for i in to_process)
+        if amount > max_distributable:
+            raise ValidationError(
+                f"Amount exceeds payable for this and later installments. Maximum is ₹{max_distributable}."
+            )
+
+        remaining_payment = amount
+        for inst in to_process:
+            if remaining_payment <= 0:
+                break
+            already = inst.paid_amount or 0
+            inst_remaining = inst.amount - already
+            applied = min(remaining_payment, inst_remaining)
+            inst.paid_amount = already + applied
+            remaining_payment -= applied
+            if inst.paid_amount >= inst.amount:
+                inst.status = "paid"
+                inst.paid_date = today
+            else:
+                inst.status = "partial"
+
         fee_plan.paid_amount += amount
 
         updated = await self.repo.save_plan(fee_plan, institute_id)
@@ -146,13 +181,14 @@ class FeeService:
             if class_id is not None and student.class_id != class_id:
                 continue
 
+            remaining = installment.amount - (installment.paid_amount or 0)
             defaulters.append(
                 DefaulterOut(
                     student_id=student.id,
                     student_name=student.full_name,
                     class_name=student.class_name or "",
                     parent_phone=student.parent_phone,
-                    pending_amount=installment.amount,
+                    pending_amount=remaining,
                     due_date=installment.due_date,
                     installment_id=installment.id,
                 )
@@ -187,13 +223,14 @@ class FeeService:
                 continue
             if class_id is not None and student.class_id != class_id:
                 continue
+            remaining = installment.amount - (installment.paid_amount or 0)
             result.append(
                 DefaulterOut(
                     student_id=student.id,
                     student_name=student.full_name,
                     class_name=student.class_name or "",
                     parent_phone=student.parent_phone,
-                    pending_amount=installment.amount,
+                    pending_amount=remaining,
                     due_date=installment.due_date,
                     installment_id=installment.id,
                 )
@@ -252,9 +289,12 @@ class FeeService:
 
             for installment in fee_plan.installments:
                 status = self.resolve_installment_status(installment, today)
-                if status == "overdue":
+                is_overdue = status == "overdue" or (
+                    status == "partial" and installment.due_date <= today
+                )
+                if is_overdue:
                     has_overdue = True
-                    overdue_amount += installment.amount
+                    overdue_amount += installment.amount - (installment.paid_amount or 0)
                 elif status == "pending":
                     has_pending = True
 

@@ -20,7 +20,7 @@ class StudentService:
         if not class_obj:
             raise NotFoundError("Class")
 
-        count = await self.repo.get_count(institute_id)
+        count = await self.repo.get_total_count(institute_id)
         new_roll_number = f"STU-{count + 1}"
 
         student_data = payload.model_dump()

@@ -28,10 +28,11 @@ interface FeeDetailSheetProps {
 
 function StatusBadge({ status }: { status: Installment["status"] }) {
   const styles = {
-    paid: { bg: "#ecfdf5", color: "var(--success)", label: "Paid" },
-    overdue: { bg: "var(--error-bg)", color: "var(--error)", label: "Overdue" },
-    pending: { bg: "var(--ink-100)", color: "var(--ink-500)", label: "Pending" },
-  }[status];
+    paid:    { bg: "#ecfdf5",           color: "var(--success)", label: "Paid" },
+    overdue: { bg: "var(--error-bg)",   color: "var(--error)",   label: "Overdue" },
+    pending: { bg: "var(--ink-100)",    color: "var(--ink-500)", label: "Pending" },
+    partial: { bg: "var(--warning-bg)", color: "var(--warning)", label: "Partial" },
+  }[status] ?? { bg: "var(--ink-100)", color: "var(--ink-500)", label: status };
 
   return (
     <span
@@ -82,7 +83,9 @@ export function FeeDetailSheet({
 
   const openPayForm = (installment: Installment) => {
     setPayTarget(installment);
-    setPayAmount(String(installment.amount));
+    const instRemaining = installment.amount - (installment.paid_amount ?? 0);
+    const planRemaining = feePlan ? Math.max(feePlan.total_amount - feePlan.paid_amount, 0) : instRemaining;
+    setPayAmount(String(Math.min(instRemaining, planRemaining)));
     setPayError("");
   };
 
@@ -188,15 +191,20 @@ export function FeeDetailSheet({
             {feePlan.installments.map((inst, index) => {
               const canPay = inst.status !== "paid";
               const isOverdue = inst.status === "overdue";
+              const isPartial = inst.status === "partial";
               const isPayOpen = payTarget?.id === inst.id;
+              const remaining = inst.amount - (inst.paid_amount ?? 0);
+
+              const cardBg = isOverdue ? "var(--error-bg)" : isPartial ? "var(--warning-bg)" : "var(--surface-0)";
+              const cardBorder = isOverdue ? "var(--error-border)" : isPartial ? "var(--warning-border)" : "var(--ink-200)";
 
               return (
                 <div
                   key={inst.id}
                   style={{
                     padding: "12px 14px",
-                    background: isOverdue ? "var(--error-bg)" : "var(--surface-0)",
-                    border: `1px solid ${isOverdue ? "var(--error-border)" : "var(--ink-200)"}`,
+                    background: cardBg,
+                    border: `1px solid ${cardBorder}`,
                     borderRadius: "var(--radius-md)",
                   }}
                 >
@@ -218,6 +226,11 @@ export function FeeDetailSheet({
                           ? ` · ${formatPaidLine(inst)} on ${formatDate(inst.paid_date)}`
                           : ""}
                       </p>
+                      {isPartial && (
+                        <p style={{ fontSize: "12px", color: "var(--warning)", fontWeight: 600, marginTop: 2 }}>
+                          {formatInr(inst.paid_amount ?? 0)} paid · {formatInr(remaining)} remaining
+                        </p>
+                      )}
                     </div>
 
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
@@ -231,9 +244,9 @@ export function FeeDetailSheet({
                             minHeight: 36,
                             padding: "0 12px",
                             borderRadius: "var(--radius-sm)",
-                            border: "1px solid var(--brand-200)",
-                            background: "var(--brand-accent)",
-                            color: "var(--brand-primary)",
+                            border: `1px solid ${isPartial ? "var(--warning-border)" : "var(--brand-200)"}`,
+                            background: isPartial ? "var(--warning-bg)" : "var(--brand-accent)",
+                            color: isPartial ? "var(--warning)" : "var(--brand-primary)",
                             fontSize: "12px",
                             fontWeight: 600,
                             cursor: payTarget ? "not-allowed" : "pointer",
@@ -241,7 +254,7 @@ export function FeeDetailSheet({
                             fontFamily: "var(--font-body)",
                           }}
                         >
-                          Mark paid
+                          {isPartial ? "Add payment" : "Mark paid"}
                         </button>
                       )}
                     </div>
@@ -259,7 +272,11 @@ export function FeeDetailSheet({
                         label="Amount received (₹)"
                         required
                         error={payError}
-                        hint={`Installment due is ${formatInr(inst.amount)}. Enter what the parent actually paid.`}
+                        hint={
+                          inst.status === "partial"
+                            ? `${formatInr(inst.paid_amount ?? 0)} already paid. ${formatInr(inst.amount - (inst.paid_amount ?? 0))} remaining. Enter amount received now.`
+                            : `Installment due is ${formatInr(inst.amount)}. Enter what the parent actually paid.`
+                        }
                       >
                         <Input
                           type="number"

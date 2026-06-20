@@ -119,7 +119,7 @@ class DashboardService:
             }
             fee_defaulters_count = len(defaulter_student_ids)
             fees_overdue = sum(
-                installment.amount
+                installment.amount - (installment.paid_amount or 0)
                 for installment in overdue_installments
             )
         records = await self.attendance_repo.get_for_date(today, institute_id)

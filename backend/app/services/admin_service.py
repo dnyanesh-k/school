@@ -1,13 +1,10 @@
 import asyncio
 from datetime import date, timedelta
 
-from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, ValidationError
 from app.core.roles import InstituteStatus, Role
-from app.models.fee import FeePlan, Installment
-from app.models.student import Student
 from app.repositories.attendance_repository import AttendanceRepository
 from app.repositories.institute_repository import InstituteRepository
 from app.repositories.user_repository import UserRepository
@@ -28,7 +25,7 @@ class AdminService:
         institute,
         users_by_institute: dict,
         student_count: int = 0,
-        attendance_days: int = 0,
+        last_attendance_date=None,
     ) -> InstituteOut:
         users = users_by_institute.get(institute.id, [])
         admin = next(
@@ -46,7 +43,7 @@ class AdminService:
             status=institute.status,
             created_at=institute.created_at,
             student_count=student_count,
-            attendance_days_last_7=attendance_days,
+            last_attendance_date=last_attendance_date,
             admin=InstituteAdminOut(
                 id=admin.id,
                 full_name=admin.full_name,
@@ -64,11 +61,10 @@ class AdminService:
         institutes, total = await self.institute_repo.list_paginated(status, page, page_size)
         institute_ids = [i.id for i in institutes]
 
-        since_7_days = date.today() - timedelta(days=7)
-        users_by_institute, student_counts, attendance_days = await asyncio.gather(
+        users_by_institute, student_counts, last_dates = await asyncio.gather(
             self.user_repo.list_by_institute_ids(institute_ids),
             self.institute_repo.student_counts_per_institute(),
-            self.attendance_repo.attendance_days_per_institute(since_7_days),
+            self.attendance_repo.last_attendance_date_per_institute(),
         )
 
         items = [
@@ -76,7 +72,7 @@ class AdminService:
                 inst,
                 users_by_institute,
                 student_counts.get(inst.id, 0),
-                attendance_days.get(inst.id, 0),
+                last_dates.get(inst.id),
             )
             for inst in institutes
         ]
@@ -85,25 +81,14 @@ class AdminService:
     async def get_stats(self) -> AdminStatsOut:
         since_7_days = date.today() - timedelta(days=7)
 
-        by_status, total_students, attendance_days, fees_result = await asyncio.gather(
+        by_status, total_students, attendance_days = await asyncio.gather(
             self.institute_repo.count_by_status(),
             self.institute_repo.total_students_all(),
             self.attendance_repo.attendance_days_per_institute(since_7_days),
-            self.db.execute(
-                select(func.coalesce(func.sum(Installment.paid_amount), 0))
-                .join(FeePlan, Installment.fee_plan_id == FeePlan.id)
-                .join(Student, FeePlan.student_id == Student.id)
-                .where(
-                    FeePlan.is_deleted == False,
-                    Installment.is_deleted == False,
-                    Installment.paid_date.isnot(None),
-                )
-            ),
         )
 
         total = sum(by_status.values())
         institutes_used_this_week = sum(1 for v in attendance_days.values() if v > 0)
-        total_fees_collected = int(fees_result.scalar() or 0)
 
         return AdminStatsOut(
             total=total,
@@ -113,7 +98,6 @@ class AdminService:
             suspended=by_status.get("suspended", 0),
             total_students=total_students,
             institutes_used_this_week=institutes_used_this_week,
-            total_fees_collected=total_fees_collected,
         )
 
     async def update_institute_status(

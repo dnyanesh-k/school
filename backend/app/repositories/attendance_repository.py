@@ -148,6 +148,15 @@ class AttendanceRepository:
 
         return saved
 
+    async def last_attendance_date_per_institute(self) -> dict[int, date]:
+        """Most recent attendance date recorded per institute."""
+        result = await self.db.execute(
+            select(Student.institute_id, func.max(Attendance.attendance_date))
+            .join(Student, Attendance.student_id == Student.id)
+            .group_by(Student.institute_id)
+        )
+        return {institute_id: last_date for institute_id, last_date in result.all()}
+
     async def attendance_days_per_institute(self, since: date) -> dict[int, int]:
         """Distinct days any attendance was marked per institute since `since`."""
         result = await self.db.execute(

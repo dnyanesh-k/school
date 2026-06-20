@@ -101,6 +101,15 @@ class StudentRepository:
         )
         return result.scalar() or 0
 
+    async def get_total_count(self, institute_id: int) -> int:
+        """Count ALL students including deleted — ensures roll numbers never collide."""
+        result = await self.db.execute(
+            select(func.count(Student.id)).where(
+                Student.institute_id == institute_id,
+            )
+        )
+        return result.scalar() or 0
+
     async def search_students(self, search_term: str, institute_id: int) -> list[Student]:
         stmt = self._base_stmt(institute_id).where(
             or_(

@@ -55,6 +55,8 @@ class FeeRepository:
             .join(Student, FeePlan.student_id == Student.id)
             .options(
                 selectinload(Installment.fee_plan)
+                .selectinload(FeePlan.installments),
+                selectinload(Installment.fee_plan)
                 .selectinload(FeePlan.student)
                 .selectinload(Student.class_),
             )

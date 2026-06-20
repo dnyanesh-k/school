@@ -62,10 +62,10 @@ function InstituteCard({
           {" · "}
           <strong style={{ color: "var(--ink-600)" }}>{institute.student_count}</strong> student{institute.student_count !== 1 ? "s" : ""}
           {" · "}
-          <span style={{ color: institute.attendance_days_last_7 > 0 ? "var(--success)" : "var(--ink-400)", fontWeight: 600 }}>
-            {institute.attendance_days_last_7 > 0
-              ? `Active ${institute.attendance_days_last_7}d this week`
-              : "No activity this week"}
+          <span style={{ color: institute.last_attendance_date ? "var(--success)" : "var(--ink-400)", fontWeight: 600 }}>
+            {institute.last_attendance_date
+              ? `Last attendance: ${formatDate(institute.last_attendance_date)}`
+              : "No attendance yet"}
           </span>
         </p>
       </div>
@@ -205,7 +205,6 @@ export default function AdminPage() {
             { label: "Pending", value: stats.pending, color: "#c2410c" },
             { label: "Students", value: stats.total_students, color: "var(--brand-primary)" },
             { label: "Used this week", value: stats.institutes_used_this_week, color: "#7c3aed" },
-            { label: "Fees collected", value: `₹${stats.total_fees_collected.toLocaleString("en-IN")}`, color: "var(--success)" },
           ].map((s) => (
             <div key={s.label} style={{ background: "var(--surface-0)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", padding: "10px 16px", minWidth: 80, textAlign: "center", boxShadow: "var(--shadow-sm)" }}>
               <p style={{ fontSize: 20, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</p>

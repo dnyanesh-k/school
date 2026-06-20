@@ -28,7 +28,7 @@ class InstallmentOut(BaseModel):
     due_date: date
     paid_date: Optional[date] = None
     paid_amount: Optional[int] = None
-    status: Literal["pending", "paid", "overdue"]
+    status: Literal["pending", "paid", "overdue", "partial"]
 
     model_config = {"from_attributes": True}
 

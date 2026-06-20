@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -22,7 +22,7 @@ class InstituteOut(BaseModel):
     created_at: datetime
     admin: Optional[InstituteAdminOut] = None
     student_count: int = 0
-    attendance_days_last_7: int = 0
+    last_attendance_date: Optional[date] = None
 
     model_config = {"from_attributes": True}
 
@@ -39,7 +39,6 @@ class AdminStatsOut(BaseModel):
     suspended: int
     total_students: int
     institutes_used_this_week: int
-    total_fees_collected: int
 
 
 class InstituteStatusUpdateResponse(BaseModel):

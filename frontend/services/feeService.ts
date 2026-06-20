@@ -10,7 +10,7 @@ export interface Installment {
   due_date: string;
   paid_date: string | null;
   paid_amount?: number | null;
-  status: "pending" | "paid" | "overdue";
+  status: "pending" | "paid" | "overdue" | "partial";
 }
 
 export interface FeePlan {
