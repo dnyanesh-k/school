@@ -44,6 +44,7 @@ class AdminService:
             created_at=institute.created_at,
             student_count=student_count,
             last_attendance_date=last_attendance_date,
+            last_dashboard_access=institute.last_dashboard_access,
             admin=InstituteAdminOut(
                 id=admin.id,
                 full_name=admin.full_name,

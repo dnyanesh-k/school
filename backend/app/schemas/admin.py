@@ -23,6 +23,7 @@ class InstituteOut(BaseModel):
     admin: Optional[InstituteAdminOut] = None
     student_count: int = 0
     last_attendance_date: Optional[date] = None
+    last_dashboard_access: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 

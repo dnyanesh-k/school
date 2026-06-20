@@ -16,6 +16,7 @@ export interface InstituteRecord {
   created_at: string;
   student_count: number;
   last_attendance_date: string | null;
+  last_dashboard_access: string | null;
   admin?: {
     id: number;
     full_name: string;

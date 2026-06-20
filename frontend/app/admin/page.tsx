@@ -16,6 +16,16 @@ function formatDate(dateStr: string) {
   });
 }
 
+function formatDateTime(dateStr: string) {
+  return new Date(dateStr).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 function StatusChip({ status }: { status: string }) {
   const map: Record<string, { label: string; bg: string; color: string }> = {
     pending: { label: "Pending", bg: "#fff7ed", color: "#c2410c" },
@@ -61,11 +71,17 @@ function InstituteCard({
           Registered {formatDate(institute.created_at)}
           {" · "}
           <strong style={{ color: "var(--ink-600)" }}>{institute.student_count}</strong> student{institute.student_count !== 1 ? "s" : ""}
-          {" · "}
+        </p>
+        <p style={{ fontSize: "12px", marginTop: 2, display: "flex", gap: 10, flexWrap: "wrap" }}>
           <span style={{ color: institute.last_attendance_date ? "var(--success)" : "var(--ink-400)", fontWeight: 600 }}>
             {institute.last_attendance_date
-              ? `Last attendance: ${formatDate(institute.last_attendance_date)}`
+              ? `Attendance: ${formatDate(institute.last_attendance_date)}`
               : "No attendance yet"}
+          </span>
+          <span style={{ color: institute.last_dashboard_access ? "var(--brand-primary)" : "var(--ink-400)", fontWeight: 600 }}>
+            {institute.last_dashboard_access
+              ? `Dashboard: ${formatDateTime(institute.last_dashboard_access)}`
+              : "Never opened"}
           </span>
         </p>
       </div>
