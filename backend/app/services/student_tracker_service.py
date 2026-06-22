@@ -120,11 +120,15 @@ class StudentTrackerService:
     # ── Stats ─────────────────────────────────────────────────────────────────
 
     async def get_stats(self, user_id: int) -> StatsOut:
-        now = datetime.now(timezone.utc)
-        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        week_start = today_start - timedelta(days=today_start.weekday())
-        month_start = today_start.replace(day=1)
-        thirty_days_ago = today_start - timedelta(days=30)
+        # Use IST (UTC+05:30) for all calendar boundaries so "today" resets at
+        # Indian midnight, not at 05:30 AM IST (UTC midnight).
+        IST = timezone(timedelta(hours=5, minutes=30))
+        now_ist = datetime.now(IST)
+        today_start_ist = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = today_start_ist.astimezone(timezone.utc)
+        week_start = (today_start_ist - timedelta(days=today_start_ist.weekday())).astimezone(timezone.utc)
+        month_start = today_start_ist.replace(day=1).astimezone(timezone.utc)
+        thirty_days_ago = (today_start_ist - timedelta(days=30)).astimezone(timezone.utc)
 
         subjects = await self.repo.list_subjects(user_id)
         subject_map = {s.id: s for s in subjects}

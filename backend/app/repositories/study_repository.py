@@ -77,14 +77,15 @@ class StudyRepository:
         return session
 
     async def today_sessions(self, user_id: int, since: datetime) -> list[StudySession]:
-        """All completed sessions that started today, ordered by start time."""
+        """All completed sessions that ended on or after `since`, ordered by start time.
+        Captures overnight sessions that started before midnight but ended today."""
         result = await self.db.execute(
             select(StudySession)
             .options(selectinload(StudySession.subject))
             .where(
                 StudySession.user_id == user_id,
                 StudySession.ended_at.isnot(None),
-                StudySession.started_at >= since,
+                StudySession.ended_at >= since,
             )
             .order_by(StudySession.started_at.asc())
         )
@@ -105,7 +106,9 @@ class StudyRepository:
     async def hours_by_subject_and_window(
         self, user_id: int, since: datetime
     ) -> dict[int, float]:
-        """Returns {subject_id: total_hours} for completed sessions since `since`."""
+        """Returns {subject_id: total_hours} for completed sessions whose ended_at
+        falls on or after `since`.  Using ended_at (not started_at) ensures overnight
+        sessions (started before midnight, ended after) are counted in the new day."""
         result = await self.db.execute(
             select(
                 StudySession.subject_id,
@@ -116,7 +119,7 @@ class StudyRepository:
             .where(
                 StudySession.user_id == user_id,
                 StudySession.ended_at.isnot(None),
-                StudySession.started_at >= since,
+                StudySession.ended_at >= since,
             )
             .group_by(StudySession.subject_id)
         )
@@ -137,7 +140,7 @@ class StudyRepository:
             .where(
                 StudySession.user_id == user_id,
                 StudySession.ended_at.isnot(None),
-                StudySession.started_at >= since,
+                StudySession.ended_at >= since,
             )
             .group_by(text("day"), StudySession.subject_id)
             .order_by(text("day"), StudySession.subject_id)

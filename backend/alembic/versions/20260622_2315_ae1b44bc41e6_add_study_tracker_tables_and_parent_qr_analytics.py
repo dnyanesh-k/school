@@ -46,6 +46,12 @@ def upgrade() -> None:
     op.create_index(op.f('ix_study_sessions_subject_id'), 'study_sessions', ['subject_id'], unique=False)
     op.create_index('ix_study_sessions_user_ended', 'study_sessions', ['user_id', 'ended_at'], unique=False)
     op.create_index(op.f('ix_study_sessions_user_id'), 'study_sessions', ['user_id'], unique=False)
+    # Enforce at most one open session per user at the DB level
+    op.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_study_sessions_one_active_per_user
+        ON study_sessions (user_id)
+        WHERE ended_at IS NULL
+    """)
     # columns missed by autogenerate (already existed in local dev DB)
     op.add_column('users', sa.Column('phone', sa.String(), nullable=True))
     op.add_column('students', sa.Column('parent_last_scan_at', sa.DateTime(timezone=True), nullable=True))
@@ -58,6 +64,7 @@ def downgrade() -> None:
     op.drop_column('students', 'parent_total_scans')
     op.drop_column('students', 'parent_last_scan_at')
     op.drop_column('users', 'phone')
+    op.execute("DROP INDEX IF EXISTS uq_study_sessions_one_active_per_user")
     op.drop_index(op.f('ix_study_sessions_user_id'), table_name='study_sessions')
     op.drop_index('ix_study_sessions_user_ended', table_name='study_sessions')
     op.drop_index(op.f('ix_study_sessions_subject_id'), table_name='study_sessions')

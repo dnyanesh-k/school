@@ -103,8 +103,13 @@ class AdminService:
         total = sum(by_status.values())
         institutes_used_this_week = sum(1 for v in attendance_days.values() if v > 0)
 
-        # Count students who had at least one session this week + total hours
-        active_this_week_result = await self.study_repo.students_active_since(week_start)
+        # Active this week (users) + lifetime total hours (separate queries)
+        from datetime import datetime, timezone
+        lifetime_start = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        active_this_week_result, lifetime_result = await asyncio.gather(
+            self.study_repo.students_active_since(week_start),
+            self.study_repo.students_active_since(lifetime_start),
+        )
 
         return AdminStatsOut(
             total=total,
@@ -118,7 +123,7 @@ class AdminService:
             independent_students_active=student_counts["active"],
             independent_students_pending=student_counts["pending"],
             independent_students_active_this_week=active_this_week_result["active_users"],
-            independent_students_total_hours=active_this_week_result["total_hours"],
+            independent_students_total_hours=lifetime_result["total_hours"],
         )
 
     async def list_independent_students(
