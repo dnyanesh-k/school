@@ -46,6 +46,19 @@ def upgrade() -> None:
     op.create_index(op.f('ix_study_sessions_subject_id'), 'study_sessions', ['subject_id'], unique=False)
     op.create_index('ix_study_sessions_user_ended', 'study_sessions', ['user_id', 'ended_at'], unique=False)
     op.create_index(op.f('ix_study_sessions_user_id'), 'study_sessions', ['user_id'], unique=False)
+    # Close any duplicate open sessions before enforcing the unique constraint
+    # (keeps the latest started_at open; auto-closes the rest)
+    op.execute("""
+        UPDATE study_sessions
+        SET ended_at = started_at
+        WHERE ended_at IS NULL
+          AND id NOT IN (
+              SELECT DISTINCT ON (user_id) id
+              FROM study_sessions
+              WHERE ended_at IS NULL
+              ORDER BY user_id, started_at DESC
+          )
+    """)
     # Enforce at most one open session per user at the DB level
     op.execute("""
         CREATE UNIQUE INDEX IF NOT EXISTS uq_study_sessions_one_active_per_user

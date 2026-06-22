@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException, ConflictError, NotFoundError, ValidationError
@@ -101,7 +102,11 @@ class StudentTrackerService:
             started_at=datetime.now(timezone.utc),
         )
         session = await self.repo.create_session(session)
-        await self.repo.save()
+        try:
+            await self.repo.save()
+        except IntegrityError:
+            # Two concurrent start_session requests raced; one already committed
+            raise ConflictError("A session is already active. Please end it first.")
         return _session_to_out(session)
 
     async def end_session(self, user_id: int) -> SessionOut:

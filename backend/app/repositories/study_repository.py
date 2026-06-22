@@ -128,10 +128,14 @@ class StudyRepository:
     async def daily_hours_last_30(
         self, user_id: int, since: datetime
     ) -> list[dict]:
-        """Returns list of {date, subject_id, hours} for graph."""
+        """Returns list of {date, subject_id, hours} for graph.
+        Buckets by the IST calendar date on which the session *ended*, consistent
+        with how today/week/month window queries use ended_at."""
         result = await self.db.execute(
             select(
-                func.date(StudySession.started_at).label("day"),
+                func.date(
+                    func.timezone("Asia/Kolkata", StudySession.ended_at)
+                ).label("day"),
                 StudySession.subject_id,
                 func.sum(
                     func.extract("epoch", StudySession.ended_at - StudySession.started_at) / 3600
