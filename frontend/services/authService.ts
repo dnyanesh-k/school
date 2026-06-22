@@ -2,7 +2,7 @@ import api from "@/lib/axios";
 import { API_URLS } from "@/config/urls";
 import { DEV_BYPASS_AUTH } from "@/lib/dev";
 
-export type UserRole = "platform_admin" | "institute_admin" | "teacher";
+export type UserRole = "platform_admin" | "institute_admin" | "teacher" | "independent_student";
 
 export interface AuthUser {
   id: number;
@@ -24,6 +24,13 @@ export interface RegisterPayload {
   city: string;
   institute_type: string;
   admin_name: string;
+  password: string;
+}
+
+export interface StudentRegisterPayload {
+  full_name: string;
+  email: string;
+  phone: string;
   password: string;
 }
 
@@ -72,6 +79,11 @@ export const authService = {
   async register(payload: RegisterPayload): Promise<RegisterResponse> {
     const response = await api.post(API_URLS.AUTH.REGISTER, payload);
     return response.data as RegisterResponse;
+  },
+
+  async registerStudent(payload: StudentRegisterPayload): Promise<{ message: string }> {
+    const response = await api.post(API_URLS.AUTH.REGISTER_STUDENT, payload);
+    return response.data;
   },
 
   async login(payload: LoginPayload): Promise<LoginResponse> {
@@ -156,11 +168,17 @@ getRole(): UserRole | null {
     return authService.getRole() === "teacher";
   },
 
+  isIndependentStudent(): boolean {
+    return authService.getRole() === "independent_student";
+  },
+
   canViewFees(): boolean {
     return authService.isInstituteAdmin();
   },
 
   getHomeRoute(): string {
-    return authService.isPlatformAdmin() ? "/admin" : "/dashboard";
+    if (authService.isPlatformAdmin()) return "/admin";
+    if (authService.isIndependentStudent()) return "/student";
+    return "/dashboard";
   },
 };

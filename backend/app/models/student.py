@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Date, ForeignKey, Index, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
@@ -27,9 +27,11 @@ class Student(Base):
     # Parent portal access
     parent_token = Column(String(36), unique=True, nullable=True, index=True)
     parent_pin_hash = Column(String, nullable=True)
-    parent_scan_count = Column(Integer, nullable=False, server_default="0")
-    parent_scan_date = Column(Date, nullable=True)   # IST date of last successful scan
-    parent_pin_attempts = Column(Integer, nullable=False, server_default="0")  # wrong PIN attempts today
+    parent_scan_count = Column(Integer, nullable=False, server_default="0")   # resets daily
+    parent_scan_date = Column(Date, nullable=True)                            # IST date of last successful scan
+    parent_pin_attempts = Column(Integer, nullable=False, server_default="0") # wrong PIN attempts today
+    parent_last_scan_at = Column(DateTime(timezone=True), nullable=True)      # exact timestamp of last successful scan (never resets)
+    parent_total_scans = Column(Integer, nullable=False, server_default="0")  # lifetime scan count (never resets)
 
     institute = relationship("Institute")
     class_ = relationship("Class", back_populates="students")

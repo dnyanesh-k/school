@@ -5,9 +5,21 @@ export const API_URLS = {
   AUTH: {
     LOGIN: `${BASE_URL}/auth/login`,
     REGISTER: `${BASE_URL}/auth/register`,
+    REGISTER_STUDENT: `${BASE_URL}/auth/register/student`,
     ME: `${BASE_URL}/auth/me`,
     FORGOT_PASSWORD: `${BASE_URL}/auth/forgot-password`,
     RESET_PASSWORD: `${BASE_URL}/auth/reset-password`,
+  },
+  STUDENT: {
+    SUBJECTS: `${BASE_URL}/student/subjects`,
+    SUBJECT: (id: number) => `${BASE_URL}/student/subjects/${id}`,
+    SESSION_START: `${BASE_URL}/student/sessions/start`,
+    SESSION_END: `${BASE_URL}/student/sessions/end`,
+    STATS: `${BASE_URL}/student/stats`,
+  },
+  ADMIN_STUDENTS: {
+    LIST: `${BASE_URL}/admin/students`,
+    ACCESS: (id: number) => `${BASE_URL}/admin/students/${id}/access`,
   },
   ADMIN: {
     STATS: `${BASE_URL}/admin/stats`,

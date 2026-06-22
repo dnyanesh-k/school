@@ -21,7 +21,17 @@ interface RegisterForm {
   confirm_password: string;
 }
 
+interface StudentForm {
+  full_name: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirm_password: string;
+}
+
 interface FieldError { [key: string]: string; }
+
+type RegistrationMode = "choose" | "institute" | "student";
 
 const STEPS = [
   { id: 1, label: "Institute" },
@@ -107,6 +117,7 @@ function TypeCard({ value, label, description, icon, selected, onSelect }: {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [mode, setMode] = useState<RegistrationMode>("choose");
   const [step, setStep] = useState(1);
 
   useEffect(() => {
@@ -117,6 +128,51 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [errors, setErrors] = useState<FieldError>({});
+
+  // Student registration state
+  const [studentForm, setStudentForm] = useState<StudentForm>({ full_name: "", email: "", phone: "", password: "", confirm_password: "" });
+  const [studentErrors, setStudentErrors] = useState<FieldError>({});
+  const [studentLoading, setStudentLoading] = useState(false);
+  const [studentApiError, setStudentApiError] = useState("");
+
+  const setStudent = (field: keyof StudentForm) => (value: string) => {
+    setStudentForm(prev => ({ ...prev, [field]: value }));
+    setStudentErrors(prev => ({ ...prev, [field]: "" }));
+    setStudentApiError("");
+  };
+
+  const validateStudent = (): boolean => {
+    const e: FieldError = {};
+    if (!studentForm.full_name.trim()) e.full_name = "Name is required";
+    if (!studentForm.email.trim()) e.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(studentForm.email)) e.email = "Enter a valid email";
+    if (!studentForm.phone.trim()) e.phone = "Phone is required";
+    else if (!/^[6-9]\d{9}$/.test(studentForm.phone)) e.phone = "Enter valid 10-digit mobile number";
+    if (!studentForm.password) e.password = "Password is required";
+    else if (studentForm.password.length < 8) e.password = "Minimum 8 characters";
+    if (studentForm.password !== studentForm.confirm_password) e.confirm_password = "Passwords do not match";
+    setStudentErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const submitStudent = async () => {
+    if (!validateStudent()) return;
+    setStudentLoading(true);
+    setStudentApiError("");
+    try {
+      await authService.registerStudent({
+        full_name: studentForm.full_name,
+        email: studentForm.email,
+        phone: studentForm.phone,
+        password: studentForm.password,
+      });
+      router.push("/register/student-pending");
+    } catch (err) {
+      setStudentApiError(getErrorMessage(err, "Registration failed. Please try again."));
+    } finally {
+      setStudentLoading(false);
+    }
+  };
 
   const [form, setForm] = useState<RegisterForm>({
     name: "", email: "", phone: "", address: "",
@@ -176,11 +232,153 @@ export default function RegisterPage() {
 
   const fieldGap = { marginBottom: "18px" };
 
+  // ── Student registration flow ────────────────────────────────────────────────
+  if (mode === "student") {
+    return (
+      <AuthLayout topRightLabel="Sign in" topRightHref="/login">
+        <div style={{ marginBottom: "24px" }}>
+          <button type="button" onClick={() => setMode("choose")} style={{ fontSize: 12, color: "var(--brand-primary)", background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 12 }}>
+            ← Back
+          </button>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "24px", fontWeight: 700, color: "var(--ink-900)", letterSpacing: "-0.03em", lineHeight: 1.2, marginBottom: 6 }}>
+            Create student account
+          </h1>
+          <p style={{ fontSize: "14px", color: "var(--ink-500)", lineHeight: 1.5 }}>
+            Track your study hours across subjects — free, always.
+          </p>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <Label required>Full Name</Label>
+          <Input placeholder="Your name" value={studentForm.full_name} onChange={setStudent("full_name")} error={studentErrors.full_name} autoComplete="name" />
+          <ErrorMsg msg={studentErrors.full_name} />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <Label required>Email Address</Label>
+          <Input type="email" placeholder="you@example.com" value={studentForm.email} onChange={setStudent("email")} error={studentErrors.email} autoComplete="email" />
+          <ErrorMsg msg={studentErrors.email} />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <Label required>Mobile Number</Label>
+          <Input type="tel" placeholder="9876543210" value={studentForm.phone} onChange={setStudent("phone")} error={studentErrors.phone} prefix="+91" autoComplete="tel" />
+          <ErrorMsg msg={studentErrors.phone} />
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <Label required>Password</Label>
+          <Input type="password" placeholder="Minimum 8 characters" value={studentForm.password} onChange={setStudent("password")} error={studentErrors.password} autoComplete="new-password" />
+          <ErrorMsg msg={studentErrors.password} />
+        </div>
+        <div style={{ marginBottom: 18 }}>
+          <Label required>Confirm Password</Label>
+          <Input type="password" placeholder="Repeat your password" value={studentForm.confirm_password} onChange={setStudent("confirm_password")} error={studentErrors.confirm_password} autoComplete="new-password" />
+          <ErrorMsg msg={studentErrors.confirm_password} />
+        </div>
+
+        {studentApiError && (
+          <div style={{ padding: "12px 14px", background: "var(--error-bg)", border: "1px solid var(--error-border)", borderRadius: "var(--radius-md)", fontSize: "13px", color: "var(--error)", marginBottom: "18px", display: "flex", alignItems: "center", gap: 8 }}>
+            <span>⚠</span> {studentApiError}
+          </div>
+        )}
+
+        <Button variant="primary" onClick={submitStudent} loading={studentLoading} disabled={studentLoading} fullWidth>
+          {studentLoading ? "Creating account…" : "Create Account"}
+        </Button>
+
+        <p style={{ textAlign: "center", fontSize: "13px", color: "var(--ink-500)", marginTop: 16 }}>
+          Already have an account?{" "}
+          <a href="/login" style={{ color: "var(--brand-primary)", fontWeight: 500, textDecoration: "none" }}>Sign in</a>
+        </p>
+      </AuthLayout>
+    );
+  }
+
+  // ── Choose mode ─────────────────────────────────────────────────────────────
+  if (mode === "choose") {
+    const cards = [
+      {
+        type: "school" as const,
+        icon: "🏫",
+        label: "School",
+        desc: "CBSE / ICSE / State Board — manage students, attendance, fees & tests.",
+      },
+      {
+        type: "coaching" as const,
+        icon: "📚",
+        label: "Coaching",
+        desc: "Tuition centre or entrance prep — manage batches, fees & tests.",
+      },
+      {
+        type: "student" as const,
+        icon: "📖",
+        label: "I'm a Student",
+        desc: "Track study time, subject goals and progress. Free forever.",
+      },
+    ];
+
+    return (
+      <AuthLayout topRightLabel="Sign in" topRightHref="/login">
+        <div style={{ marginBottom: "28px" }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "24px", fontWeight: 700, color: "var(--ink-900)", letterSpacing: "-0.03em", lineHeight: 1.2, marginBottom: 6 }}>
+            Get started
+          </h1>
+          <p style={{ fontSize: "14px", color: "var(--ink-500)" }}>Choose how you want to use VidyaTrack.</p>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {cards.map(c => (
+            <button
+              key={c.type}
+              type="button"
+              onClick={() => {
+                if (c.type === "student") {
+                  setMode("student");
+                } else {
+                  set("institute_type")(c.type);
+                  setMode("institute");
+                  setStep(1);
+                }
+              }}
+              style={{
+                textAlign: "left", padding: "14px 16px",
+                border: "1.5px solid var(--ink-200)",
+                borderRadius: "var(--radius-lg)",
+                background: "var(--surface-0)",
+                cursor: "pointer",
+                transition: "border-color 0.15s, box-shadow 0.15s",
+                display: "flex", gap: 14, alignItems: "center",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--brand-primary)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 0 3px rgba(99,102,241,0.08)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ink-200)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
+            >
+              <span style={{ fontSize: 28, flexShrink: 0 }}>{c.icon}</span>
+              <div>
+                <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, color: "var(--ink-900)", marginBottom: 3 }}>{c.label}</p>
+                <p style={{ fontSize: 13, color: "var(--ink-500)", lineHeight: 1.45 }}>{c.desc}</p>
+              </div>
+              <span style={{ marginLeft: "auto", fontSize: 18, color: "var(--ink-300)", flexShrink: 0 }}>›</span>
+            </button>
+          ))}
+        </div>
+
+        <p style={{ textAlign: "center", fontSize: "14px", color: "var(--ink-500)", marginTop: "24px" }}>
+          Already have an account?{" "}
+          <a href="/login" style={{ color: "var(--brand-primary)", fontWeight: 500, textDecoration: "none" }}>Sign in</a>
+        </p>
+      </AuthLayout>
+    );
+  }
+
+  // ── Institute registration flow (existing) ───────────────────────────────────
   return (
     <AuthLayout topRightLabel="Sign in" topRightHref="/login">
 
       {/* Heading */}
       <div style={{ marginBottom: "24px" }}>
+        {step === 1 && (
+          <button type="button" onClick={() => setMode("choose")} style={{ fontSize: 12, color: "var(--brand-primary)", background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 12 }}>
+            ← Back
+          </button>
+        )}
         <h1 style={{
           fontFamily: "var(--font-display)", fontSize: "24px", fontWeight: 700,
           color: "var(--ink-900)", letterSpacing: "-0.03em", lineHeight: 1.2, marginBottom: 6,
@@ -201,21 +399,24 @@ export default function RegisterPage() {
       {/* Step 1 */}
       {step === 1 && (
         <div className="animate-fadeUp">
+          {/* Type badge — show what was selected, allow going back to change */}
+          {form.institute_type && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+              <span style={{ fontSize: 18 }}>{form.institute_type === "school" ? "🏫" : "📚"}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-700)", textTransform: "capitalize" }}>{form.institute_type}</span>
+              <button type="button" onClick={() => setMode("choose")} style={{ marginLeft: 4, fontSize: 12, color: "var(--brand-primary)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                Change
+              </button>
+            </div>
+          )}
           <div style={fieldGap}>
             <Label required>Institute Name</Label>
             <Input placeholder="e.g. Sunrise Coaching Classes" value={form.name} onChange={set("name")} error={errors.name} autoComplete="organization" />
             <ErrorMsg msg={errors.name} />
           </div>
-          <div style={fieldGap}>
-            <Label required>Type of Institute</Label>
-            <div style={{ display: "flex", gap: 12, marginTop: 2 }}>
-              <TypeCard value="school" label="School" description="CBSE, ICSE, State Board" icon="🏫" selected={form.institute_type === "school"} onSelect={() => set("institute_type")("school")} />
-              <TypeCard value="coaching" label="Coaching" description="Tuition, entrance prep" icon="📚" selected={form.institute_type === "coaching"} onSelect={() => set("institute_type")("coaching")} />
-            </div>
-            <ErrorMsg msg={errors.institute_type} />
-          </div>
         </div>
       )}
+
 
       {/* Step 2 */}
       {step === 2 && (

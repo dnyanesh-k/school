@@ -126,6 +126,8 @@ async def parent_view(
         raise ValidationError("Already accessed today. Try again tomorrow.")
 
     student.parent_scan_count += 1
+    student.parent_total_scans += 1
+    student.parent_last_scan_at = datetime.now(timezone.utc)
     student.parent_pin_attempts = 0  # reset on correct PIN
 
     # ── Fetch last test score ─────────────────────────────────────────────────

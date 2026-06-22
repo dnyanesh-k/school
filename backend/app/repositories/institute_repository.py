@@ -83,3 +83,24 @@ class InstituteRepository:
             .group_by(Student.institute_id)
         )
         return {institute_id: count for institute_id, count in result.all()}
+
+    async def parent_qr_stats_per_institute(self) -> dict[int, dict]:
+        """Returns {institute_id: {qr_generated, parents_scanned, last_scan_at}} per institute."""
+        result = await self.db.execute(
+            select(
+                Student.institute_id,
+                func.count(Student.id).filter(Student.parent_token.isnot(None)).label("qr_generated"),
+                func.count(Student.id).filter(Student.parent_total_scans > 0).label("parents_scanned"),
+                func.max(Student.parent_last_scan_at).label("last_scan_at"),
+            )
+            .where(Student.is_deleted == False)
+            .group_by(Student.institute_id)
+        )
+        return {
+            row.institute_id: {
+                "qr_generated": row.qr_generated,
+                "parents_scanned": row.parents_scanned,
+                "last_scan_at": row.last_scan_at,
+            }
+            for row in result.all()
+        }

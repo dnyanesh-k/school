@@ -143,7 +143,16 @@ async def require_institute_admin(
     return current_user
 
 
+async def require_independent_student(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.role != Role.INDEPENDENT_STUDENT.value:
+        raise ForbiddenError("This endpoint is for independent students only")
+    return current_user
+
+
 # Shorthand types for route signatures (optional but readable)
 CurrentUser = Annotated[User, Depends(get_current_user)]
 PlatformAdmin = Annotated[User, Depends(require_platform_admin)]
 InstituteUser = Annotated[User, Depends(require_institute_user)]
+IndependentStudent = Annotated[User, Depends(require_independent_student)]

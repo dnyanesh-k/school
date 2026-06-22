@@ -202,6 +202,51 @@ input:-webkit-autofill {
   }
 }
 
+/* ── Student dashboard animations ────────────────────────────────────────── */
+@keyframes staggerFadeUp {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0px) translateZ(0); }
+  50%       { transform: translateY(-6px) translateZ(0); }
+}
+
+@keyframes gradientDrift {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale3d(0.8, 0.8, 1); }
+  70%  { transform: scale3d(1.04, 1.04, 1); }
+  100% { opacity: 1; transform: scale3d(1, 1, 1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translate3d(16px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1;   transform: scale3d(1, 1, 1);    }
+  50%       { opacity: 0.6; transform: scale3d(0.9, 0.9, 1); }
+}
+
+/* Force GPU compositing on animated student-page elements to prevent blur */
+[style*="animation"] {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+}
+
+@keyframes cardGlow {
+  0%, 100% { box-shadow: 0 8px 32px var(--glow-color, rgba(124,58,237,0.28)); }
+  50%       { box-shadow: 0 12px 48px var(--glow-color, rgba(124,58,237,0.45)); }
+}
+
 .lp-reveal {
   opacity: 0;
   animation: fadeUp 0.55s ease forwards;

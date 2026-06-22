@@ -6,6 +6,38 @@ function navStroke(active: boolean) {
   return active ? "var(--nav-icon-active)" : "var(--nav-icon)";
 }
 
+const STUDENT_NAV_ITEMS = [
+  {
+    label: "Stats",
+    href: "/student",
+    icon: (active: boolean) => (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M18 20V10M12 20V4M6 20v-6" stroke={navStroke(active)} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    label: "Session",
+    href: "/student/session",
+    icon: (active: boolean) => (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" stroke={navStroke(active)} strokeWidth="1.75" />
+        <path d="M12 7v5l3 3" stroke={navStroke(active)} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    label: "Subjects",
+    href: "/student/subjects",
+    icon: (active: boolean) => (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke={navStroke(active)} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke={navStroke(active)} strokeWidth="1.75" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+];
+
 const NAV_ITEMS = [
   {
     label: "Home",
@@ -62,10 +94,9 @@ const NAV_ITEMS = [
 ];
 
 function getNavItems(role: UserRole | null) {
-  if (role === "teacher") {
-    return NAV_ITEMS.filter((item) => item.href !== "/dashboard/fees");
-  }
+  if (role === "independent_student") return STUDENT_NAV_ITEMS;
+  if (role === "teacher") return NAV_ITEMS.filter((item) => item.href !== "/dashboard/fees");
   return NAV_ITEMS;
 }
 
-export { NAV_ITEMS, getNavItems, navStroke };
+export { NAV_ITEMS, STUDENT_NAV_ITEMS, getNavItems, navStroke };

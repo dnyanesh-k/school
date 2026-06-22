@@ -10,7 +10,7 @@ from app.models.institute import Institute
 from app.models.user import User
 from app.repositories.institute_repository import InstituteRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.auth import CreateTeacherRequest, LoginRequest, RegisterRequest, RegisterResponse, UserOut
+from app.schemas.auth import CreateTeacherRequest, LoginRequest, RegisterRequest, RegisterResponse, StudentRegisterRequest, StudentRegisterResponse, UserOut
 from app.services.email_service import send_welcome_email
 
 
@@ -37,6 +37,10 @@ class AuthService:
 
     async def _validate_institute_access(self, user: User) -> None:
         if user.role == Role.PLATFORM_ADMIN.value:
+            return
+
+        # Independent students have no institute — only is_active matters (checked by get_current_user)
+        if user.role == Role.INDEPENDENT_STUDENT.value:
             return
 
         if not user.institute_id:
@@ -176,6 +180,28 @@ class AuthService:
         await self.db.refresh(created)
 
         return to_user_out(created)
+
+    async def register_student(self, payload: StudentRegisterRequest) -> StudentRegisterResponse:
+        existing = await self.user_repo.get_by_email(payload.email)
+        if existing:
+            raise ConflictError("Email already registered")
+
+        student = User(
+            email=payload.email,
+            full_name=payload.full_name,
+            hashed_password=hash_password(payload.password),
+            role=Role.INDEPENDENT_STUDENT.value,
+            is_admin=False,
+            institute_id=None,
+            phone=payload.phone,
+            is_active=False,  # platform admin must approve before first login
+        )
+        await self.user_repo.create(student)
+        await self.db.commit()
+
+        return StudentRegisterResponse(
+            message="Registration submitted. You will be able to log in once approved by our team."
+        )
 
     async def list_teachers(self, actor: User) -> list[UserOut]:
         if actor.role not in {Role.INSTITUTE_ADMIN.value, Role.TEACHER.value}:

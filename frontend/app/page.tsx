@@ -331,7 +331,29 @@ function Hero() {
         }}>
           Get started <ArrowRight />
         </Link>
-        <p className="lp-reveal lp-reveal-d4" style={{ fontSize: 11, color: "var(--ink-600)", marginBottom: 16 }}>5 min setup</p>
+        <p className="lp-reveal lp-reveal-d4" style={{ fontSize: 11, color: "var(--ink-600)", marginBottom: 14 }}>5 min setup · No credit card needed</p>
+
+        {/* Student Corner — subtle secondary CTA */}
+        <div className="lp-reveal lp-reveal-d4" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 4 }}>
+          <span style={{ height: 1, width: 36, background: "var(--ink-200)", display: "inline-block" }} />
+          <span style={{ fontSize: 12, color: "var(--ink-400)", fontWeight: 500 }}>or</span>
+          <span style={{ height: 1, width: 36, background: "var(--ink-200)", display: "inline-block" }} />
+        </div>
+        <Link href="/register" className="lp-reveal lp-reveal-d4" style={{
+          fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
+          padding: "11px 24px", borderRadius: "var(--radius-md)",
+          background: "linear-gradient(135deg, #f5f3ff, #ede9fe)",
+          border: "1.5px solid #c4b5fd",
+          color: "#6d28d9",
+          textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 7,
+          width: "100%", maxWidth: 280, justifyContent: "center", marginBottom: 6,
+          boxShadow: "0 2px 8px rgba(124,58,237,0.12)",
+        }}>
+          <span style={{ fontSize: 16 }}>📖</span> Student Corner — Free
+        </Link>
+        <p className="lp-reveal lp-reveal-d4" style={{ fontSize: 11, color: "#7c3aed", fontWeight: 500, marginBottom: 16 }}>
+          Track study time, subject goals &amp; progress. Always free.
+        </p>
       </div>
 
       <div className="lp-hero-preview" style={{ ...BOX, marginTop: 44 }}>
