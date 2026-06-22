@@ -7,8 +7,9 @@ from app.core.exceptions import NotFoundError, ValidationError
 from app.core.roles import InstituteStatus, Role
 from app.repositories.attendance_repository import AttendanceRepository
 from app.repositories.institute_repository import InstituteRepository
+from app.repositories.study_repository import StudyRepository
 from app.repositories.user_repository import UserRepository
-from app.schemas.admin import AdminStatsOut, InstituteOut, InstituteStatusUpdate, InstituteStatusUpdateResponse, InstituteAdminOut
+from app.schemas.admin import AdminStatsOut, IndependentStudentOut, InstituteAdminOut, InstituteOut, InstituteStatusUpdate, InstituteStatusUpdateResponse, StudentAccessUpdate
 from app.core.pagination import slice_page
 from app.schemas.pagination import PaginatedResponse, build_paginated, DEFAULT_PAGE, DEFAULT_PAGE_SIZE
 
@@ -19,6 +20,7 @@ class AdminService:
         self.institute_repo = InstituteRepository(db)
         self.user_repo = UserRepository(db)
         self.attendance_repo = AttendanceRepository(db)
+        self.study_repo = StudyRepository(db)
 
     def _build_institute_out(
         self,
@@ -26,12 +28,14 @@ class AdminService:
         users_by_institute: dict,
         student_count: int = 0,
         last_attendance_date=None,
+        qr_stats: dict | None = None,
     ) -> InstituteOut:
         users = users_by_institute.get(institute.id, [])
         admin = next(
             (user for user in users if user.role == Role.INSTITUTE_ADMIN.value),
             None,
         )
+        qr = qr_stats or {}
         return InstituteOut(
             id=institute.id,
             name=institute.name,
@@ -45,6 +49,9 @@ class AdminService:
             student_count=student_count,
             last_attendance_date=last_attendance_date,
             last_dashboard_access=institute.last_dashboard_access,
+            qr_generated=qr.get("qr_generated", 0),
+            parents_scanned=qr.get("parents_scanned", 0),
+            parent_last_scan_at=qr.get("last_scan_at"),
             admin=InstituteAdminOut(
                 id=admin.id,
                 full_name=admin.full_name,
@@ -62,10 +69,11 @@ class AdminService:
         institutes, total = await self.institute_repo.list_paginated(status, page, page_size)
         institute_ids = [i.id for i in institutes]
 
-        users_by_institute, student_counts, last_dates = await asyncio.gather(
+        users_by_institute, student_counts, last_dates, qr_stats = await asyncio.gather(
             self.user_repo.list_by_institute_ids(institute_ids),
             self.institute_repo.student_counts_per_institute(),
             self.attendance_repo.last_attendance_date_per_institute(),
+            self.institute_repo.parent_qr_stats_per_institute(),
         )
 
         items = [
@@ -74,22 +82,34 @@ class AdminService:
                 users_by_institute,
                 student_counts.get(inst.id, 0),
                 last_dates.get(inst.id),
+                qr_stats.get(inst.id),
             )
             for inst in institutes
         ]
         return build_paginated(items, total, page, page_size)
 
     async def get_stats(self) -> AdminStatsOut:
+        from datetime import datetime, timezone
         since_7_days = date.today() - timedelta(days=7)
+        week_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=7)
 
-        by_status, total_students, attendance_days = await asyncio.gather(
+        by_status, total_students, attendance_days, student_counts = await asyncio.gather(
             self.institute_repo.count_by_status(),
             self.institute_repo.total_students_all(),
             self.attendance_repo.attendance_days_per_institute(since_7_days),
+            self.user_repo.independent_student_stats(),
         )
 
         total = sum(by_status.values())
         institutes_used_this_week = sum(1 for v in attendance_days.values() if v > 0)
+
+        # Active this week (users) + lifetime total hours (separate queries)
+        from datetime import datetime, timezone
+        lifetime_start = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        active_this_week_result, lifetime_result = await asyncio.gather(
+            self.study_repo.students_active_since(week_start),
+            self.study_repo.students_active_since(lifetime_start),
+        )
 
         return AdminStatsOut(
             total=total,
@@ -99,6 +119,66 @@ class AdminService:
             suspended=by_status.get("suspended", 0),
             total_students=total_students,
             institutes_used_this_week=institutes_used_this_week,
+            independent_students_total=student_counts["total"],
+            independent_students_active=student_counts["active"],
+            independent_students_pending=student_counts["pending"],
+            independent_students_active_this_week=active_this_week_result["active_users"],
+            independent_students_total_hours=lifetime_result["total_hours"],
+        )
+
+    async def list_independent_students(
+        self,
+        page: int = DEFAULT_PAGE,
+        page_size: int = DEFAULT_PAGE_SIZE,
+    ) -> PaginatedResponse[IndependentStudentOut]:
+        page, page_size, _ = slice_page(page, page_size)
+        users, total = await self.user_repo.list_independent_students(page, page_size)
+
+        items = []
+        for user in users:
+            sessions, hours, last_session = await asyncio.gather(
+                self.study_repo.total_sessions_for_user(user.id),
+                self.study_repo.total_hours_for_user(user.id),
+                self.study_repo.last_session_at(user.id),
+            )
+            items.append(IndependentStudentOut(
+                id=user.id,
+                full_name=user.full_name,
+                email=user.email,
+                phone=user.phone,
+                is_active=user.is_active,
+                total_sessions=sessions,
+                total_hours=round(hours, 1),
+                last_session_at=last_session,
+            ))
+
+        return build_paginated(items, total, page, page_size)
+
+    async def toggle_student_access(
+        self, user_id: int, payload: StudentAccessUpdate
+    ) -> IndependentStudentOut:
+        user = await self.user_repo.get_by_id(user_id)
+        if not user or user.role != Role.INDEPENDENT_STUDENT.value:
+            raise NotFoundError("Student")
+
+        user.is_active = payload.is_active
+        await self.db.commit()
+        await self.db.refresh(user)
+
+        sessions, hours, last_session = await asyncio.gather(
+            self.study_repo.total_sessions_for_user(user.id),
+            self.study_repo.total_hours_for_user(user.id),
+            self.study_repo.last_session_at(user.id),
+        )
+        return IndependentStudentOut(
+            id=user.id,
+            full_name=user.full_name,
+            email=user.email,
+            phone=user.phone,
+            is_active=user.is_active,
+            total_sessions=sessions,
+            total_hours=round(hours, 1),
+            last_session_at=last_session,
         )
 
     async def update_institute_status(

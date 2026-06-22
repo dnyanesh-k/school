@@ -19,12 +19,13 @@ from app.api.v1 import (
     installments,
     parent,
     settings,
+    student_tracker,
     students,
     subjects,
     tests,
     users,
 )
-from app.core.auth import require_institute_admin, require_institute_user, require_platform_admin
+from app.core.auth import require_institute_admin, require_institute_user, require_independent_student, require_platform_admin
 from app.api.v1.parent import public_router as parent_public_router
 
 # Router-level auth — catches any endpoint that forgets Depends(...)
@@ -52,3 +53,6 @@ v1_router.include_router(installments.router, dependencies=INSTITUTE_ADMIN_AUTH)
 # share-qr: institute user auth; public parent view: no auth
 v1_router.include_router(parent.router, dependencies=INSTITUTE_AUTH)
 v1_router.include_router(parent_public_router)
+
+# independent student tracker — auth enforced per-route inside the router
+v1_router.include_router(student_tracker.router)

@@ -28,6 +28,8 @@ class User(Base):
 
     institute = relationship("Institute", back_populates="users")
 
+    phone = Column(String, nullable=True)
+
     is_active = Column(Boolean, default=True)
     is_deleted = Column(Boolean, default=False, nullable=False)
 

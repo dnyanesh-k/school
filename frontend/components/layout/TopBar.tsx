@@ -9,7 +9,8 @@ interface TopBarProps {
 }
 
 export function TopBar({ title }: TopBarProps) {
-  const { instituteName, loading } = useInstitute();
+  const { instituteName, loading, user } = useInstitute();
+  const subtitle = instituteName || user?.full_name || "VidyaTrack";
 
   return (
     <header className="vt-topbar">
@@ -19,12 +20,12 @@ export function TopBar({ title }: TopBarProps) {
           <>
             <span className="vt-topbar-page">{title}</span>
             <span className="vt-topbar-institute">
-              {loading ? "Loading…" : instituteName || "My institute"}
+              {loading ? "Loading…" : subtitle}
             </span>
           </>
         ) : (
           <span className="vt-topbar-page">
-            {loading ? "Loading…" : instituteName || "My institute"}
+            {loading ? "Loading…" : subtitle}
           </span>
         )}
       </div>

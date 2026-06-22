@@ -16,6 +16,8 @@ from app.schemas.auth import (
     RegisterRequest,
     RegisterResponse,
     ResetPasswordRequest,
+    StudentRegisterRequest,
+    StudentRegisterResponse,
     UserOut,
 )
 from app.services.auth_service import AuthService, to_user_out
@@ -61,6 +63,15 @@ async def login(
 @router.get("/me", response_model=UserOut, status_code=status.HTTP_200_OK)
 async def me(current_user: CurrentUser):
     return to_user_out(current_user)
+
+
+@router.post("/register/student", response_model=StudentRegisterResponse, status_code=status.HTTP_201_CREATED)
+async def register_student(
+    payload: StudentRegisterRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    service = AuthService(db)
+    return await service.register_student(payload)
 
 
 @router.post("/forgot-password", response_model=MessageResponse, status_code=status.HTTP_200_OK)

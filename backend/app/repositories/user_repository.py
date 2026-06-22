@@ -2,6 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.core.soft_delete import soft_delete
+from app.core.roles import Role
 from app.models.user import User
 
 
@@ -59,6 +60,38 @@ class UserRepository:
         for user in users:
             grouped.setdefault(user.institute_id, []).append(user)
         return grouped
+
+    async def list_independent_students(
+        self, page: int, page_size: int
+    ) -> tuple[list[User], int]:
+        base = select(User).where(
+            User.role == Role.INDEPENDENT_STUDENT.value,
+            User.is_deleted.is_(False),
+        )
+        count_result = await self.db.execute(select(func.count()).select_from(base.subquery()))
+        total = count_result.scalar_one()
+
+        result = await self.db.execute(
+            base.order_by(User.id.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        return list(result.scalars().all()), total
+
+    async def independent_student_stats(self) -> dict:
+        """Returns aggregate counts for independent students."""
+        base_filter = [
+            User.role == Role.INDEPENDENT_STUDENT.value,
+            User.is_deleted.is_(False),
+        ]
+        total_result = await self.db.execute(select(func.count()).where(*base_filter))
+        active_result = await self.db.execute(select(func.count()).where(*base_filter, User.is_active.is_(True)))
+        pending_result = await self.db.execute(select(func.count()).where(*base_filter, User.is_active.is_(False)))
+        return {
+            "total": total_result.scalar_one(),
+            "active": active_result.scalar_one(),
+            "pending": pending_result.scalar_one(),
+        }
 
     async def delete(self, user: User) -> None:
         user.is_active = False

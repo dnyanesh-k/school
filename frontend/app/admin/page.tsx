@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/hooks/useToast";
 import { Pagination } from "@/components/common/Pagination";
-import { adminService, getErrorMessage, type AdminStats, type InstituteRecord } from "@/services/adminService";
+import { adminService, getErrorMessage, type AdminStats, type IndependentStudent, type InstituteRecord } from "@/services/adminService";
 import { DEFAULT_PAGE_SIZE } from "@/lib/pagination";
 
 type FilterStatus = "all" | "pending" | "active" | "suspended";
+type AdminTab = "institutes" | "students";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-IN", {
@@ -84,6 +85,28 @@ function InstituteCard({
               : "Never opened"}
           </span>
         </p>
+        {/* Parent QR engagement row */}
+        <p style={{ fontSize: "12px", marginTop: 4, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ color: institute.qr_generated > 0 ? "var(--ink-700)" : "var(--ink-400)", fontWeight: 600 }}>
+            🔗 QR shared: <strong>{institute.qr_generated}</strong>/{institute.student_count}
+          </span>
+          <span style={{
+            color: institute.parents_scanned > 0 ? "#7c3aed" : "var(--ink-400)",
+            fontWeight: 600,
+          }}>
+            👨‍👩‍👧 Parents active: <strong>{institute.parents_scanned}</strong>
+            {institute.qr_generated > 0 && (
+              <span style={{ fontWeight: 400, color: "var(--ink-400)" }}>
+                {" "}({Math.round((institute.parents_scanned / institute.qr_generated) * 100)}%)
+              </span>
+            )}
+          </span>
+          {institute.parent_last_scan_at && (
+            <span style={{ color: "var(--ink-400)", fontWeight: 400 }}>
+              Last scan: {formatDateTime(institute.parent_last_scan_at)}
+            </span>
+          )}
+        </p>
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -139,8 +162,68 @@ function actionStyle(variant: "success" | "danger" | "neutral", disabled: boolea
   } as const;
 }
 
+function StudentCard({ student, onToggle, loadingId }: { student: IndependentStudent; onToggle: (id: number, active: boolean) => void; loadingId: number | null }) {
+  const busy = loadingId === student.id;
+  const waMsg = encodeURIComponent(
+    `Hi ${student.full_name}, your VidyaTrack Student Corner account has been approved! 🎉\n\nYou can now log in and start tracking your study at:\nhttps://vidyatrackai.com/login\n\nHappy studying! 📖`
+  );
+  const waHref = student.phone
+    ? `https://wa.me/91${student.phone.replace(/\D/g, "")}?text=${waMsg}`
+    : null;
+
+  return (
+    <div style={{ background: "var(--surface-0)", borderRadius: "var(--radius-lg)", padding: "14px 16px", boxShadow: "var(--shadow-sm)", border: !student.is_active ? "1px solid #fed7aa" : "1px solid transparent" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+        <div>
+          <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "var(--ink-900)", marginBottom: 2 }}>{student.full_name}</p>
+          <p style={{ fontSize: 12, color: "var(--ink-500)" }}>{student.email}{student.phone ? ` · ${student.phone}` : ""}</p>
+        </div>
+        <span style={{ fontSize: "11px", fontWeight: 600, padding: "4px 10px", borderRadius: "var(--radius-full)", background: student.is_active ? "#ecfdf5" : "#fff7ed", color: student.is_active ? "var(--success)" : "#c2410c" }}>
+          {student.is_active ? "Active" : "Pending"}
+        </span>
+      </div>
+
+      {/* Usage stats */}
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "var(--ink-500)", marginBottom: 10 }}>
+        <span>📚 {student.total_sessions} sessions</span>
+        <span>⏱ {student.total_hours}h total</span>
+        {student.last_session_at && (
+          <span style={{ color: "var(--brand-primary)", fontWeight: 600 }}>
+            Last: {new Date(student.last_session_at).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true })}
+          </span>
+        )}
+        {!student.last_session_at && student.is_active && (
+          <span style={{ color: "var(--ink-400)" }}>No sessions yet</span>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {!student.is_active && (
+          <button type="button" disabled={busy} onClick={() => onToggle(student.id, true)} style={actionStyle("success", busy)}>Approve</button>
+        )}
+        {student.is_active && (
+          <button type="button" disabled={busy} onClick={() => onToggle(student.id, false)} style={actionStyle("neutral", busy)}>Disable</button>
+        )}
+        {waHref && (
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ ...actionStyle("neutral", false), display: "inline-flex", alignItems: "center", gap: 5, textDecoration: "none" }}
+          >
+            <span style={{ fontSize: 14 }}>💬</span> WhatsApp
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { showToast } = useToast();
+  const [activeTab, setActiveTab] = useState<AdminTab>("institutes");
+
+  // Institutes state
   const [institutes, setInstitutes] = useState<InstituteRecord[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [filter, setFilter] = useState<FilterStatus>("pending");
@@ -151,9 +234,48 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
+  // Students state
+  const [students, setStudents] = useState<IndependentStudent[]>([]);
+  const [studentsPage, setStudentsPage] = useState(1);
+  const [studentsTotalPages, setStudentsTotalPages] = useState(1);
+  const [studentsTotal, setStudentsTotal] = useState(0);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+  const [studentActionId, setStudentActionId] = useState<number | null>(null);
+
   useEffect(() => {
     adminService.getStats().then(setStats).catch(() => null);
   }, []);
+
+  const loadStudents = useCallback(async () => {
+    setStudentsLoading(true);
+    try {
+      const result = await adminService.listStudents(studentsPage, DEFAULT_PAGE_SIZE);
+      setStudents(result.items);
+      setStudentsTotalPages(result.total_pages);
+      setStudentsTotal(result.total);
+    } catch (err) {
+      showToast(getErrorMessage(err, "Failed to load students"), "error");
+    } finally {
+      setStudentsLoading(false);
+    }
+  }, [studentsPage, showToast]);
+
+  useEffect(() => {
+    if (activeTab === "students") loadStudents();
+  }, [activeTab, loadStudents]);
+
+  const handleStudentToggle = async (userId: number, isActive: boolean) => {
+    setStudentActionId(userId);
+    try {
+      const updated = await adminService.toggleStudentAccess(userId, isActive);
+      setStudents(prev => prev.map(s => s.id === updated.id ? updated : s));
+      showToast(isActive ? "Student approved" : "Student disabled", "success");
+    } catch (err) {
+      showToast(getErrorMessage(err, "Action failed"), "error");
+    } finally {
+      setStudentActionId(null);
+    }
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -205,13 +327,71 @@ export default function AdminPage() {
   return (
     <>
       <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "24px", color: "var(--ink-900)", marginBottom: 6 }}>
-          Institutes
+        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "24px", color: "var(--ink-900)", marginBottom: 12 }}>
+          Platform Admin
         </h1>
-        <p style={{ fontSize: "14px", color: "var(--ink-500)", lineHeight: 1.5 }}>
-          Enable or disable institute access after self-registration.
-        </p>
+        {/* Tab switcher */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+          {(["institutes", "students"] as AdminTab[]).map(tab => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              style={{ padding: "7px 18px", borderRadius: "var(--radius-full)", border: "1.5px solid", borderColor: activeTab === tab ? "var(--brand-primary)" : "var(--ink-200)", background: activeTab === tab ? "var(--brand-accent)" : "var(--surface-0)", fontSize: 13, fontWeight: activeTab === tab ? 600 : 400, color: activeTab === tab ? "var(--brand-primary)" : "var(--ink-500)", cursor: "pointer", fontFamily: "var(--font-body)", textTransform: "capitalize" }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* ── Students tab ─────────────────────────────────────────────────────── */}
+      {activeTab === "students" && (
+        <>
+          {/* Student aggregate stats */}
+          {stats && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+              {[
+                { label: "Total", value: stats.independent_students_total, color: "var(--ink-700)" },
+                { label: "Active", value: stats.independent_students_active, color: "var(--success)" },
+                { label: "Pending", value: stats.independent_students_pending, color: "#c2410c" },
+                { label: "Active this week", value: stats.independent_students_active_this_week, color: "#7c3aed" },
+                { label: "Total hours", value: `${stats.independent_students_total_hours}h`, color: "var(--brand-primary)" },
+              ].map(s => (
+                <div key={s.label} style={{ background: "var(--surface-0)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", padding: "10px 16px", minWidth: 80, textAlign: "center", boxShadow: "var(--shadow-sm)" }}>
+                  <p style={{ fontSize: 20, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</p>
+                  <p style={{ fontSize: 11, color: "var(--ink-500)", marginTop: 4, fontWeight: 500 }}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          <p style={{ fontSize: 13, color: "var(--ink-500)", marginBottom: 16 }}>
+            {studentsTotal} student{studentsTotal !== 1 ? "s" : ""} on this page · Approve to allow login
+          </p>
+          {studentsLoading ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[1, 2, 3].map(i => <div key={i} style={{ height: 100, borderRadius: "var(--radius-lg)", background: "var(--ink-100)" }} />)}
+            </div>
+          ) : students.length === 0 ? (
+            <div style={{ padding: "48px 20px", textAlign: "center", background: "var(--surface-0)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)" }}>
+              <p style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15, color: "var(--ink-900)" }}>No students yet</p>
+              <p style={{ fontSize: 13, color: "var(--ink-500)", marginTop: 4 }}>Students will appear here after registering at /register</p>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 8 }}>
+                {students.map(s => (
+                  <StudentCard key={s.id} student={s} onToggle={handleStudentToggle} loadingId={studentActionId} />
+                ))}
+              </div>
+              <Pagination page={studentsPage} totalPages={studentsTotalPages} total={studentsTotal} onPageChange={setStudentsPage} loading={studentsLoading} />
+            </>
+          )}
+        </>
+      )}
+
+      {/* ── Institutes tab ───────────────────────────────────────────────────── */}
+      {activeTab === "institutes" && (<>
 
       {stats && (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
@@ -305,6 +485,7 @@ export default function AdminPage() {
           </>
         );
       })()}
+      </>)}
     </>
   );
 }

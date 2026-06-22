@@ -17,6 +17,18 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8)
 
 
+class StudentRegisterRequest(BaseModel):
+    full_name: str = Field(min_length=1)
+    email: EmailStr
+    phone: str
+    password: str = Field(min_length=8)
+
+
+class StudentRegisterResponse(BaseModel):
+    success: bool = True
+    message: str
+
+
 class UserOut(BaseModel):
     id: int
     full_name: str

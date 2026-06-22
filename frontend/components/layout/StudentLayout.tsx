@@ -7,7 +7,7 @@ import { InstituteProvider } from "@/contexts/InstituteContext";
 import { Sidebar } from "./Sidebar";
 import { BottomTab } from "./BottomTab";
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function StudentLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
@@ -15,15 +15,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       router.replace("/login");
       return;
     }
-
-    if (authService.isPlatformAdmin()) {
-      router.replace("/admin");
-      return;
-    }
-
-    if (authService.isIndependentStudent()) {
-      router.replace("/student");
-      return;
+    if (!authService.isIndependentStudent()) {
+      router.replace(authService.getHomeRoute());
     }
   }, [router]);
 
