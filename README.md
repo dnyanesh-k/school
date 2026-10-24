@@ -3,7 +3,7 @@
 Mobile-first school management POC for Indian schools and coaching institutes. Institutes register, get approved by a platform admin, then run attendance, fees, tests, and parent follow-ups from a phone-friendly dashboard.
 
 **Marketing name:** VidyaTrack  
-**Repo root:** `school/` (git root)
+**Repo root:** `school/` 
 
 ---
 
